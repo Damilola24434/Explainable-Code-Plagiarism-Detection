@@ -1,0 +1,16 @@
+Branch: Similarity Testing & Async Processing
+
+This branch focuses on improving the accuracy, performance, and scalability of the plagiarism detection system. 
+The primary goal is to refine similarity computation while preparing the system for efficient large-scale processing.
+
+Focus Areas
+
+Similarity threshold testing and optimization
+Tokenization, k-gram, and fingerprint refinement
+Non-blocking similarity computation with background jobs
+
+Goals
+
+Improve detection accuracy
+Reduce false positives
+Enhance scalability and responsiveness
