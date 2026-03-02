@@ -1,0 +1,102 @@
+Explainable Code Plagiarism Detection
+
+A full-stack system for structured, explainable code similarity analysis with staged backend processing and interactive frontend visualization.
+
+🛠 Tech Stack
+
+Backend
+
+FastAPI
+
+PostgreSQL
+
+SQLAlchemy
+
+Pydantic
+
+Uvicorn
+
+Python 3.12+
+
+Frontend
+
+React (Vite)
+
+JavaScript
+
+npm
+
+🚀 How to Run (Windows)
+Backend
+
+From project root:
+
+cd backend
+
+python -m venv .venv
+.\.venv\Scripts\Activate.ps1
+pip install -r requirements.txt
+
+# set DATABASE_URL in .env
+
+uvicorn app.main:app --reload
+
+Backend runs at:
+
+http://localhost:8000
+
+Swagger docs:
+
+http://localhost:8000/docs
+Frontend
+cd frontend
+npm install
+npm run dev
+
+Frontend runs at:
+
+http://localhost:5173
+
+CORS is configured to communicate with backend on port 8000.
+
+✅ Milestones Completed
+Backend Foundation
+
+February 9 – 22
+
+Modular FastAPI architecture
+
+PostgreSQL schema design (collections, datasets, runs, submissions, files, fingerprints)
+
+RESTful CRUD endpoints
+
+Pydantic validation
+
+Dependency-injected DB sessions
+
+Verified API via Swagger
+
+Backend is structured and operational for MVP.
+
+Frontend Prototype
+
+February 23 – March 1
+
+React UI for collections, dataset uploads, and run creation
+
+Simulated job progress tracking
+
+Mock similarity result display
+
+Architecture ready for API integration
+
+Frontend prototype complete.
+
+🔜 Next Milestones
+
+Implement asynchronous backend job stages
+(INGEST → TOKENS → AST → AGGREGATE → REPORT)
+
+Build detailed results visualization dashboard
+
+Connect run creation to detection pipeline with live status updates
