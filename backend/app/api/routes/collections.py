@@ -77,6 +77,10 @@ services:
 
 # let me group realted endpoints together this is very important for the code to be fast 
 # the depend is a way to say before running a functio run thee other one first
+# this file is what connects user uploads from frontend to stored database
+
+# let me group realted endpoints together this is very important for the code to be fast 
+# the depend is a way to say before running a functio run thee other one first
 from fastapi import APIRouter, Depends, HTTPException, status, UploadFile, File as FastAPIFile
 #this is the database connection object.. it is passed to every function that will need it
 from sqlalchemy.orm import Session
