@@ -30,6 +30,19 @@ docker compose down
 
 ---
 
+## Why Docker? (Why It's Easy)
+
+✅ **No Manual Setup** — No need to install Python, Node.js, PostgreSQL, Redis separately  
+✅ **Consistent Environment** — Works the same on Windows, Mac, and Linux  
+✅ **One Command Start** — Everything (frontend, backend, database, worker) runs with `docker compose up --build -d`  
+✅ **Zero Config** — All services are pre-configured and connected automatically  
+✅ **Easy Cleanup** — One command `docker compose down` removes everything  
+
+**For teammates:** Just install [Docker Desktop](https://www.docker.com/products/docker-desktop), clone the repo, and run the start command. That's it! No Python venv, no package installation headaches, no "it works on my machine" problems.
+
+---
+---
+
 ## Current Milestone: AST Parsing
 
 Implemented Tree-sitter-based parsing for:
