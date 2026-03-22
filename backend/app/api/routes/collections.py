@@ -9,7 +9,7 @@
 
 # let me group related endpoints together this is very important for the code to be fast
 # the depend is a way to say before running a function run the other one first
-from fastapi import APIRouter, Depends, HTTPException, status, UploadFile, File as FastAPIFile
+from fastapi import APIRouter, Depends, HTTPException, status, UploadFile, File
 # this is the database connection object.. it is passed to every function that will need it
 from sqlalchemy.orm import Session
 # uuid is for generating and handling unique ids,
