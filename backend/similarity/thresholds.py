@@ -7,6 +7,10 @@
 # and labelled in the detection pipeline.
 # ============================================================
 
+# K-gram window size used across the token similarity pipeline.
+# Imported by evaluator.py so k is defined in one place only.
+K_GRAM_SIZE: int = 5
+
 # Minimum Jaccard score to flag a pair as potentially similar.
 # Pairs below this threshold are considered distinct and ignored.
 SIMILARITY_THRESHOLD_MIN: float = 0.20
