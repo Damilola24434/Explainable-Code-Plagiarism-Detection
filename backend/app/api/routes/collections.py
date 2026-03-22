@@ -20,6 +20,7 @@ import zipfile
 import io
 # time to get the current timestamp
 import time
+import os
 
 # this is a function that opens the database connection
 from app.core.db import get_db
@@ -124,7 +125,9 @@ def upload_zip(collection_id: uuid.UUID, file: UploadFile = File(...), db: Sessi
     col = get_or_404(db, collection_id)
     if not file.filename.endswith('.zip'):
         raise HTTPException(status_code=400, detail="Only ZIP files allowed")
-    dataset = Dataset(collection_id=collection_id, uploaded_at=time.time())
+    base_name = os.path.splitext(file.filename)[0] or "dataset"
+    dataset_name = f"{base_name}-{int(time.time())}"
+    dataset = Dataset(collection_id=collection_id, name=dataset_name)
     db.add(dataset)
     db.commit()
     db.refresh(dataset)
