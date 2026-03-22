@@ -1,3 +1,11 @@
+#About models.py file:
+#  this file is the backbone of the database structure
+# It contains the table models for collections,datasets,submissions,files,runs,results
+# Each class in this code file represnets one table in the database
+# the models tell helps in ensuring that the right data format is stored as how diffrent parts are connected.
+#This file is the data foundation of the whole system.
+# collections, uploads,analysis rus and results all depend on the models in this code file
+
 import uuid
 from sqlalchemy import (
     Column, String, Integer, Float, Text, ForeignKey,
@@ -8,7 +16,7 @@ from sqlalchemy.sql import func
 from app.core.db import Base
 
 
-# 1) collections
+# 1)  this class of collections represents the collection table and what is expected in  this table in particular
 class Collection(Base):
     __tablename__ = "collections"
 
@@ -22,7 +30,7 @@ class Collection(Base):
     )
 
 
-# 2) datasets
+# 2) this class of datasets represents the datasets table and what is expected in this table in particular
 class Dataset(Base):
     __tablename__ = "datasets"
 
@@ -37,7 +45,7 @@ class Dataset(Base):
     )
 
 
-# 3) submissions
+# 3) this class of submissions represents the submissions table and what is expected in this table in particular
 class Submission(Base):
     __tablename__ = "submissions"
 
@@ -52,7 +60,7 @@ class Submission(Base):
     )
 
 
-# 4) files
+# 4) this class of files represents the files table and what is expected in this table in particular
 class File(Base):
     __tablename__ = "files"
 
@@ -73,7 +81,7 @@ class File(Base):
     )
 
 
-# 5) runs
+# 5) this class of runs represents the runs table and what is expected in this table in particular
 class Run(Base):
     __tablename__ = "runs"
 
@@ -98,7 +106,7 @@ class Run(Base):
     )
 
 
-# 6) file_fingerprints
+# 6) file_fingerprints  
 class FileFingerprint(Base):
     __tablename__ = "file_fingerprints"
 
@@ -119,7 +127,7 @@ class FileFingerprint(Base):
     )
 
 
-# 7) candidate_pairs
+# 7) candidate_pairs 
 class CandidatePair(Base):
     __tablename__ = "candidate_pairs"
 
@@ -193,3 +201,12 @@ class RunReport(Base):
         UniqueConstraint("run_id", name="uq_run_reports_run_id"),
         Index("ix_run_reports_run_id", "run_id"),
     )
+
+
+#About models.py file:
+#  this file is the backbone of the database structure
+# It contains the table models for collections,datasets,submissions,files,runs,results
+# Each class in this code file represnets one table in the database
+# the models tell helps in ensuring that the right data format is stored as how diffrent parts are connected.
+#This file is the data foundation of the whole system.
+# collections, uploads,analysis rus and results all depend on the models in this code file

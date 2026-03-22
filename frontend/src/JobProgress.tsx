@@ -1,3 +1,14 @@
+// about job progress component
+// this is a react component that shows the progress of an analysis job
+// it polls the backend for run status every 2 seconds
+// it shows a progress bar, current stage, overall progress percentage  
+// it shows elapsed analysis time
+// when the job is complete it shows a button to view results
+// if the job fails it shows an error message and a back button
+// it uses the getRun API function to fetch run status from the backend
+// this component is used after starting an analysis run to track its progress  
+// and provide feedback to the user until the analysis is complete or fails.
+// job progress is the UI component that manages and displays the analysis job status to the user.
 import { useState, useEffect, useRef } from "react";
 import { getRun, type Run } from "./api/runs";
 
@@ -17,21 +28,21 @@ const stages = [
 type PollTimerRef = {
   current: ReturnType<typeof setInterval> | null;
 };
-
+// helper to stop polling timer
 function stopTimer(timerRef: PollTimerRef) {
   // stop polling timer
   if (!timerRef.current) return;
   clearInterval(timerRef.current);
   timerRef.current = null;
 }
-
+// helper to get run title
 function getRunTitle(run: Run): string {
   // title by run status
   if (run.status === "DONE") return "Analysis Complete";
   if (run.status === "FAILED") return "Analysis Failed";
   return "Analysis In Progress";
 }
-
+// helper to format duration
 function formatDuration(totalSeconds: number): string {
   const safeSeconds = Math.max(0, Math.floor(totalSeconds));
   const hours = Math.floor(safeSeconds / 3600);
@@ -46,7 +57,7 @@ function formatDuration(totalSeconds: number): string {
   }
   return `${seconds}s`;
 }
-
+// helper to get analysis duration
 function getAnalysisDuration(run: Run): string | null {
   if (!run.started_at) {
     return null;
@@ -65,7 +76,7 @@ function getAnalysisDuration(run: Run): string | null {
 
   return formatDuration((finishedAt - startedAt) / 1000);
 }
-
+// main component
 export default function JobProgress({ runId, onComplete, onCancel }: Props) {
   const [runData, setRunData] = useState<Run | null>(null);
   const [loadError, setLoadError] = useState<string | null>(null);

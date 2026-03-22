@@ -1,3 +1,12 @@
+# about main.py file:
+# this is the backend app entry point.
+# It creates creates the Fastapi application.
+# It registers all files routes to example collections, datasets, files, runs
+# it includes basci app setup like CORS and heath endpoints
+# This file stars the backend api
+# without this code file routes files will exists but the app would not expoase them to the frontend
+
+
 from fastapi import FastAPI, Depends
 from fastapi.middleware.cors import CORSMiddleware
 from sqlalchemy.orm import Session
@@ -38,3 +47,4 @@ def db_test(db: Session = Depends(get_db)):
 # Include all API routers
 app.include_router(api_router)
 
+# This fie is the backend launcher that wires all API routes togther

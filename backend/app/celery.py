@@ -1,3 +1,10 @@
+# about celery.py file:
+# this code file helps set up the celery for  backgroung jobs.
+# celery is used so  taks that are long likeplagiari analysis/detection run on the background , not in the main API request.
+# It defines how the worker connects  to the queue paryicular;y ( Redis in docker)
+# it also sets task settings ( like serialization/ timezone behavior)
+# with out this fie run can create a run, but ackground analysis willl not process properly
+# This is what a=makes " Run analysis" continue asynchronously in the background after user clicks "run analysis" in the frontend   
 import os
 
 from celery import Celery

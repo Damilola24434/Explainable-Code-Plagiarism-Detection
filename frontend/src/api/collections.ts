@@ -1,5 +1,10 @@
 // simple API client using fetch, no external libraries
-
+// about collections it is the frontend API helper for data operations.
+// it contins funtions the UI calls to talkto backend endpoits for collections,datasets, datasets files,singl file contet, ZIP upload
+// it hes instead of writing fetch logic in every react componeents this file keeps all thoses API calls in one place
+// why it matters is because reactpages use this fie to send user actios to the backedn
+// backend routes then save / read frthe databse.  so this file is the frontend to backend bridge for collection/datset/file features
+// so the collections.ts is the fri=ontend network layer that handels collecions- related API featurees.
 export interface Collection {
   id: string;
   owner_id: string;

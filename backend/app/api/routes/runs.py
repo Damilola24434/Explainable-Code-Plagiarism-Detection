@@ -1,3 +1,18 @@
+# About runs.py file:
+# This file  handles plagrism analysis jobs("runs").
+# This file manages  the anayis process and not the analusis logic itself.
+# how it works:
+# user cicks run analyis in the fronend
+#runs.y receive that request.
+# It then creates a run job in the databsde.
+# It lets the frontend check> is the run still working? is it finished? what are the results?
+# it is basically like a manager for plagrism check. it start and tracks job statis.
+# it does nt do the AST parsi itself, it does not do the tokenization itself, it does not do the similarity checking itself.
+# those are done in the tasks/pipeline.py file.
+
+
+
+
 import os
 import threading
 from typing import List

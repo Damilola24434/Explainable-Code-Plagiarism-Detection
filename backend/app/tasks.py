@@ -1,3 +1,14 @@
+# about tasks.py file:
+# this file contains the background task logic for analysis jobs.
+# When  runs.py starts a run, this  files does the heavey background job processing. it helps to loas files from DB
+# run analysus pipeline stages ( ingest, token, ast, report)
+# fr now the ast and token base a plceholder is kept
+# it save progress and final results back to the databse.
+# runs is like the manager of the background analysis jobs
+# tasks.py is the worker that actually perform the analysis
+
+
+Bottom line: The system structure is in place, but the actual similarity analysis (token + AST) hasn’t been implemented yet.
 import random
 import time
 import os
@@ -71,6 +82,11 @@ def get_run_files(db: Session, run_id: str) -> list[File]:
         .all()
     )
 
+#The overall pipeline is implemented and working (run tracking, stages, database writes).
+#However, the core analysis logic is still incomplete.
+#The token analysis stage is currently just a placeholder.
+#The AST (Abstract Syntax Tree) analysis stage is also a placeholder.
+#The final scoring is not meaningful yet—it uses random placeholder values.
 
 def run_token_stage(db: Session, run_id: str) -> None:
     # placeholder token stage
@@ -93,6 +109,11 @@ def get_existing_pairs(db: Session, run_id: str) -> set[tuple[str, str]]:
     pairs = db.query(PairResult).filter(PairResult.run_id == run_id).all()
     return {(str(pair.file_a_id), str(pair.file_b_id)) for pair in pairs}
 
+#The overall pipeline is implemented and working (run tracking, stages, database writes).
+#However, the core analysis logic is still incomplete.
+#The token analysis stage is currently just a placeholder.
+#The AST (Abstract Syntax Tree) analysis stage is also a placeholder.
+#The final scoring is not meaningful yet—it uses random placeholder values.
 
 def build_placeholder_results(
     run_id: str,

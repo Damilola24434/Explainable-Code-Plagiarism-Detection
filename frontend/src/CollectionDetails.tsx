@@ -1,3 +1,18 @@
+// frontend/src/CollectionDetails.tsx
+// collectiondetails.tsx is the frontend component that shows details of a selected collection.
+// it displays the datasets in the collection, allows uploading new datasets via zip files,
+// and lets users start analysis jobs on the datasets.
+// it uses api functions from api/collections.ts to interact with the backend for dataset management.
+// it also uses api/runs.ts to start analysis jobs and track their progress.
+// collectiondetails.tsx is crucial for managing datasets within a collection and initiating plagiarism detection analyses.
+// it provides navigation back to the main collections list via the onBack callback.
+// collection details is the UI component that manages and displays a single collection's datasets and analysis runs.
+//  it transforms user actions into API calls and updates the UI accordingly.
+// it is the bridge between user dataset management actions and backend data storage.
+// it also bridges starting analysis runs and viewing their progress/results.
+// it shows the collection name and a back button to return to the collections list.
+//  
+
 import { useEffect, useState } from "react";
 import type { Collection, Dataset } from "./api/collections";
 import { getDatasets, uploadDatasetZip } from "./api/collections";

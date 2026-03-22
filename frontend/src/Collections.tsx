@@ -1,3 +1,16 @@
+// about the collections component
+// this component shows the list of collections retrieved from the backend api
+// it allows creating new collections and deleting existing ones
+// when a collection is clicked, it calls onSelectCollection callback to notify parent component
+// this component is important because collections are the top-level organisational unit for datasets and analysis runs
+// collections is the UI component that manages and displays user collections of datasets.
+// it uses the api functions defined in api/collections.ts to interact with the backend
+// to fetch, create, and delete collections.
+// collections.tsx is the frontend component that handles displaying and managing collections in the UI.
+// it is the starting point for users to organise their datasets for analysis.
+// it transforms user actions into API calls and updates the UI accordingly.
+// collections is the bridge between user collection management actions and backend data storage.
+
 import { useEffect, useState } from "react";
 import type { Collection as ApiCollection } from "./api/collections";
 import { getCollections, createCollection, deleteCollection } from "./api/collections";

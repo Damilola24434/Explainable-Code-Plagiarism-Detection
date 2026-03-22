@@ -1,3 +1,13 @@
+// this component shws two code sde by side so user the professor can visually comaptre suspicious plagiarism pairs
+// it also receives a similarity score and convers it into a risk level to show a colored badge at the top
+// it has a button to return to results page
+// a title and similarity /risk badge
+// a loading message while fetching.
+// an error message if file loading fails.
+// two code panels side by side once data loads successfully.
+// this is a maual review page where professor can inspaecr files sisde by side that have high similarity score 
+// and decide if the similarity looks like it was copied rom a sourece
+
 import { useState, useEffect } from "react";
 
 const API_BASE = "http://localhost:8000/api";

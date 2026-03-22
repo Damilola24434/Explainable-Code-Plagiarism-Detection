@@ -1,3 +1,13 @@
+// about analysis results page
+// this is a react component that displays plagiarism anayiss results in a clean way
+// it shows simpilarity scores between file pairs, risk level from high. medium-low
+// it shows matched file names, it shows a visual comparison /sise by side code view.
+// it fetches the run reult from the the backend processing usinf API then it formart  and display them in the UI
+// this code file matters because this is the final results screen user see after run analuysis complates.
+// it transforms raw results/data int readable report
+// analysis results is the UI component that displays plagiarism detection results to the user.
+
+
 import { useEffect, useState } from "react";
 import { getRunResults, type SimilarityResult } from "./api/runs";
 import SideBySideComparison from "./SideBySideComparison";

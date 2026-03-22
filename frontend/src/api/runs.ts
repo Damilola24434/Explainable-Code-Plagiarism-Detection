@@ -1,3 +1,13 @@
+// this file is the frontend API helper for anaysis runs.
+// it has fuctios to start a run,check run status/progress, get run results
+// the UI componenes call thus fie instead of writing fetch calls directly.
+// why it matters is backend manges runs,
+// this file is the frontend side that talks to that backend routes.
+// so this files is what cnnets the run analysis buttin to acutual backend run processing/.
+// runs is the frontend network layer for starting and tracking plagiarism analysis run procesing.
+// runs.ts is the frontend netwoek layer for startig and trackin pagiarism analysis runs.
+
+
 const API_BASE = "/api";
 
 export interface Run {
