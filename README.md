@@ -2,6 +2,34 @@
 
 Senior design project for detecting likely plagiarism in student programming assignments with explainable evidence.
 
+## 🚀 Quick Start (For Teammates)
+
+**Requirements:** Docker & Docker Compose
+
+**3 Steps:**
+
+1. **Clone the repo:**
+   ```bash
+   git clone https://github.com/Damilola24434/Explainable-Code-Plagiarism-Detection.git
+   cd Explainable-Code-Plagiarism-Detection
+   ```
+
+2. **Start everything:**
+   ```bash
+   docker compose up --build -d
+   ```
+
+3. **Open the app:**
+   - Frontend: http://localhost:5173
+   - Backend API: http://localhost:8000
+
+**Stop the app:**
+```bash
+docker compose down
+```
+
+---
+
 ## Current Milestone: AST Parsing
 
 Implemented Tree-sitter-based parsing for:
@@ -34,35 +62,19 @@ Or from `backend/` with your venv activated:
 pytest tests/test_ast_parser.py -q
 ```
 
-## Team Run Guide (Docker)
+## Troubleshooting
 
-Use these commands from the repo root.
+If something goes wrong:
 
-1. Start the full app stack (frontend, backend, worker, redis):
+- **Check container status:** `docker ps`
+- **View backend logs:** `docker logs plagiarism-backend --tail 100`
+- **Restart everything:** `docker compose down && docker compose up --build -d`
 
-```bash
-docker compose up --build -d
-```
+---
 
-2. Check running containers:
+## Development
 
-```bash
-docker ps
-```
-
-3. Check backend logs if anything fails:
-
-```bash
-docker logs plagiarism-backend --tail 100
-```
-
-4. Stop everything when done:
-
-```bash
-docker compose down
-```
-
-App URL after startup: http://localhost:5173
+## Team Run Guide (Detailed)
 
 ## Next Planned Milestones
 
