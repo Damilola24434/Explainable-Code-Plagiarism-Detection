@@ -1,0 +1,178 @@
+# Explainable Code Plagiarism Detection
+
+This project is a full-stack app for plagiarism detection in code submissions.
+
+It lets instructors:
+- create collections and datasets
+- upload ZIP files of student code
+- run an analysis job
+- track progress by stages
+- review pair similarity results
+- open side-by-side file comparison
+
+## Tech Stack
+
+### Backend
+- Python 3.12+
+- FastAPI
+- SQLAlchemy
+- Pydantic
+- Celery
+- Uvicorn
+
+### Frontend
+- React (Vite)
+- TypeScript
+- npm
+
+## Project Structure
+
+- `backend/`: API, models, job pipeline, database logic
+- `frontend/`: React UI and API client helpers
+- `DamiReadme`: This project summary and progress log
+
+## How To Run (Recommended For Team And Demo)
+
+Use Docker Compose so every teammate can run the exact same stack with one command.
+
+### 1. Prerequisites
+
+- Install Docker Desktop
+- Start Docker Desktop and wait until it is running
+
+Optional checks:
+
+```powershell
+docker --version
+docker compose version
+```
+
+### 2. Start everything
+
+From project root:
+
+```powershell
+docker compose up --build
+```
+
+This starts:
+- frontend (Vite)
+- backend (FastAPI)
+- celery worker
+- redis
+- postgres
+
+### 3. Open the app
+
+- Frontend: http://localhost:5173
+- Backend health: http://localhost:8000/api/health
+- Backend docs: http://localhost:8000/docs
+
+### 4. Stop services
+
+In the same terminal, press Ctrl + C, then run:
+
+```powershell
+docker compose down
+```
+
+### 5. Clean reset (if needed)
+
+```powershell
+docker compose down -v
+docker compose up --build
+```
+
+## Teammate Quick Start (Copy/Paste)
+
+```powershell
+git clone <repo-url>
+cd Explainable-Code-Plagiarism-Detection-main
+docker compose up --build
+```
+
+Then open http://localhost:5173
+
+If anything is stuck:
+
+```powershell
+docker compose down -v
+docker compose up --build
+```
+
+## Local Dev (Without Docker, optional)
+
+Use this only if Docker is not available.
+
+### Backend
+
+```powershell
+cd backend
+python -m venv .venv
+.\.venv\Scripts\Activate.ps1
+pip install -r requirements.txt
+$env:USE_REDIS="0"
+python -m uvicorn app.main:app --host 0.0.0.0 --port 8000
+```
+
+### Frontend
+
+```powershell
+cd frontend
+npm install
+npm run dev
+```
+
+## Current Backend Job Flow
+
+Run stages:
+- `INGEST`
+- `TOKENS` (placeholder)
+- `AST` (placeholder)
+- `REPORT`
+
+Notes:
+- The job pipeline is asynchronous.
+- In local mode (`USE_REDIS=0`), jobs run in a background thread.
+- Risk levels are currently based on placeholder scores.
+
+## API Endpoints Used By Frontend
+
+- `POST /api/runs/` start a new run
+- `GET /api/runs/{id}` get run status and progress
+- `GET /api/runs/{id}/results` get similarity results
+
+## What Was Done Today (March 14, 2026)
+
+### UI and UX updates
+- Refactored the frontend to look clean and professional.
+- Removed informal icons and emoji-style labels.
+- Added consistent spacing, typography, and table styles.
+- Improved responsive behavior for desktop and mobile.
+- Updated code comparison to use 2 columns on desktop and stacked view on small screens.
+
+### Functional UI updates
+- Removed the top header bar from the page (name and online status section).
+- Kept all existing behavior and API wiring unchanged.
+
+### Readability refactor
+- Refactored core backend files into smaller helper functions.
+- Refactored frontend workflow files with simpler names.
+- Added short one-line comments in key parts.
+- Kept logic and output behavior the same.
+
+## Learning Notes
+
+This codebase is currently structured so each part is easy to follow:
+- API layer handles HTTP requests.
+- Job layer handles stage processing.
+- UI layer polls status and displays results.
+
+The TOKENS and AST algorithm logic can be plugged in later without changing the overall app flow.
+
+## How file uploads work
+You pick a collection.
+You upload one ZIP as a dataset.
+Each top-level folder (Alice, Rob) becomes one submission/student.
+Code files inside each folder are read and saved in the database.
+Later, when you click Run Plagiarism Detection, the system compares files from those submissions.
