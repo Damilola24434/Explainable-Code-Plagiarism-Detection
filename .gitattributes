@@ -1,0 +1,4 @@
+# Auto detect text files and normalize line endings to LF for shell scripts
+*.sh eol=lf
+*.py eol=lf
+.gitattributes text eol=lf
