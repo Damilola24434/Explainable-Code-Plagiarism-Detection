@@ -8,7 +8,7 @@
 # tasks.py is the worker that actually perform the analysis
 
 
-Bottom line: The system structure is in place, but the actual similarity analysis (token + AST) hasn’t been implemented yet.
+# Bottom line: The system structure is in place, but the actual similarity analysis (token + AST) hasn't been implemented yet.
 import random
 import time
 import os
