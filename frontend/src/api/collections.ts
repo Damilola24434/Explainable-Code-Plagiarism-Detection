@@ -69,7 +69,7 @@ export async function getDatasets(collectionId: string): Promise<Dataset[]> {
 
 export async function uploadDatasetZip(collectionId: string, zip: File): Promise<void> {
   const form = new FormData();
-  form.append("upload", zip);
+  form.append("file", zip);
   const res = await fetch(`${COLLECTIONS_BASE}${collectionId}/upload`, {
     method: "POST",
     body: form,
