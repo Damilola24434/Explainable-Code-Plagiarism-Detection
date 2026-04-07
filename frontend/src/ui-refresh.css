@@ -168,19 +168,19 @@ button.crumb-link {
 
 /* This styles the search and form fields. */
 .nav-search {
-  border: none;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.35);
-  border-radius: 0;
-  background: transparent;
-  color: #f7f9fb;
-  box-shadow: none;
+  border: 2px solid #8ecae6;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.14);
+  color: #ffffff !important;
+  -webkit-text-fill-color: #ffffff;
+  caret-color: #ffffff;
+  box-shadow: 0 0 0 1px rgba(142, 202, 230, 0.22);
   min-width: 220px;
-  padding: 5px 0;
+  padding: 7px 12px;
 }
 
 .form-input,
-.form-select,
-.search {
+.form-select {
   border: none;
   border-bottom: 1px solid rgba(31, 58, 95, 0.28);
   border-radius: 0;
@@ -205,15 +205,15 @@ button.crumb-link {
 
 /* This styles the placeholder text. */
 .nav-search::placeholder {
-  color: rgba(247, 249, 251, 0.68);
-  opacity: 0.9;
+  color: rgba(255, 255, 255, 0.95) !important;
+  -webkit-text-fill-color: rgba(255, 255, 255, 0.95);
+  opacity: 1;
 }
 
 .form-input::placeholder,
-.form-select::placeholder,
-.search::placeholder {
-  color: rgba(31, 58, 95, 0.55);
-  opacity: 0.9;
+.form-select::placeholder {
+  color: rgba(31, 58, 95, 0.42);
+  opacity: 0.85;
 }
 
 /* This keeps the create collection field easy to read. */
@@ -222,6 +222,7 @@ button.crumb-link {
 input[name="collectionName"] {
   color: #0f172a !important;
   -webkit-text-fill-color: #0f172a;
+  caret-color: #0f172a;
   background: rgba(255, 255, 255, 0.92);
   padding: 0.6rem 0.45rem;
 }
@@ -231,6 +232,12 @@ input[name="collectionName"] {
 .form-select:focus {
   outline: none;
   border-color: var(--primary);
+}
+
+.nav-search:focus {
+  background: rgba(255, 255, 255, 0.2);
+  border-color: #bde7fb;
+  box-shadow: 0 0 0 2px rgba(142, 202, 230, 0.2);
 }
 
 /* This lets the main area fill the page. */

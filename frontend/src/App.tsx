@@ -73,7 +73,7 @@ export default function App() {
           <div className="nav-right">
             <input
               type="search"
-              className="nav-search search"
+              className="nav-search"
               placeholder={selectedCollection ? "Search datasets" : "Search collections"}
               aria-label={selectedCollection ? "Search datasets" : "Search collections"}
               value={searchQuery}
