@@ -79,6 +79,13 @@ class File(Base):
         Index("ix_files_submission_id", "submission_id"),
         Index("ix_files_content_hash", "content_hash"),
     )
+#About models.py file:
+#  this file is the backbone of the database structure
+# It contains the table models for collections,datasets,submissions,files,runs,results
+# Each class in this code file represnets one table in the database
+# the models tell helps in ensuring that the right data format is stored as how diffrent parts are connected.
+#This file is the data foundation of the whole system.
+# collections, uploads,analysis rus and results all depend on the models in this code file
 
 
 # 5) this class of runs represents the runs table and what is expected in this table in particular

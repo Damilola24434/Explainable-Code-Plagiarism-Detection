@@ -1,0 +1,1011 @@
+/* These are the main site colors. */
+:root {
+  --primary: #1f3a5f;
+  --secondary: #6c9a8b;
+  --background: #f7f9fb;
+  --surface: #ffffff;
+  --surface-soft: #eef3f6;
+  --text: #223043;
+  --muted: #617181;
+  --line: rgba(31, 58, 95, 0.12);
+  --line-strong: rgba(31, 58, 95, 0.22);
+  --accent: #e36414;
+  --risk-medium: #8a7350;
+}
+
+/* This sets the page background and text. */
+body {
+  font-family: "Segoe UI", Arial, sans-serif;
+  background: #eef2f6;
+  color: var(--text);
+  background-attachment: fixed;
+}
+
+/* This keeps link color simple. */
+a {
+  color: inherit;
+}
+
+/* This keeps the app wrappers full height. */
+.app,
+.app-shell,
+.app-main,
+.screen {
+  min-height: 100vh;
+  background: transparent;
+}
+
+.screen {
+  border: 1px solid rgba(255, 255, 255, 0.12);
+}
+
+/* This styles the top navigation bar. */
+.site-nav {
+  position: sticky;
+  top: 0;
+  z-index: 10;
+  background: rgba(18, 24, 48, 0.92);
+  backdrop-filter: blur(8px);
+  border: 1px solid rgba(255, 255, 255, 0.14);
+}
+
+.navbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  min-height: 60px;
+}
+
+.site-nav-inner {
+  position: relative;
+  max-width: 1100px;
+  width: 100%;
+  margin: 0 auto;
+  min-height: 60px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  padding: 0 40px;
+}
+
+/* This lines up the left and right nav areas. */
+.nav-left,
+.nav-right {
+  display: flex;
+  align-items: center;
+  z-index: 1;
+}
+
+.nav-left {
+  min-width: 120px;
+}
+
+.nav-right {
+  min-width: 220px;
+  justify-content: flex-end;
+}
+
+/* This styles the app name. */
+.site-title {
+  color: #f7f9fb;
+  font-size: 1.08rem;
+  font-weight: 800;
+  letter-spacing: 0.01em;
+}
+
+/* This keeps the logo button simple. */
+.brand-link {
+  border: 0;
+  background: transparent;
+  padding: 0;
+  cursor: pointer;
+}
+
+/* This keeps the nav links in the center. */
+.nav-center {
+  display: flex;
+  align-items: center;
+  gap: 40px;
+  position: absolute;
+  left: 50%;
+  transform: translateX(-50%);
+}
+
+/* This groups each navbar item. */
+.crumb-group {
+  display: inline-flex;
+  align-items: center;
+}
+
+/* This styles each nav link. */
+.nav-link,
+.crumb-link {
+  position: relative;
+  border: 0;
+  background: transparent;
+  padding: 0;
+  color: rgba(247, 249, 251, 0.82);
+  font: inherit;
+  font-size: 0.9rem;
+  font-weight: 500;
+  text-decoration: none;
+  transition: color 0.2s ease;
+}
+
+.nav-link::after,
+.crumb-link::after {
+  content: "";
+  position: absolute;
+  left: 0;
+  bottom: -4px;
+  width: 0%;
+  height: 2px;
+  background: #8ecae6;
+  transition: width 0.25s ease;
+}
+
+/* This makes the nav items clickable. */
+button.nav-link,
+button.crumb-link {
+  cursor: pointer;
+}
+
+/* This changes link color on hover and active. */
+.nav-link:hover,
+.crumb-link:hover,
+.nav-link.active,
+.crumb-link.active {
+  color: #ffffff;
+}
+
+.nav-link:hover::after,
+.crumb-link:hover::after,
+.nav-link.active::after,
+.crumb-link.active::after {
+  width: 100%;
+}
+
+/* This styles the search and form fields. */
+.nav-search {
+  border: none;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.35);
+  border-radius: 0;
+  background: transparent;
+  color: #f7f9fb;
+  box-shadow: none;
+  min-width: 220px;
+  padding: 5px 0;
+}
+
+.form-input,
+.form-select,
+.search {
+  border: none;
+  border-bottom: 1px solid rgba(31, 58, 95, 0.28);
+  border-radius: 0;
+  background: transparent;
+  color: var(--text);
+  caret-color: var(--text);
+  box-shadow: none;
+}
+
+.search:focus,
+.nav-search:focus,
+.form-input:focus,
+.form-select:focus {
+  border-color: #1F3A5F;
+}
+
+/* This adds inner space to form fields. */
+.form-input,
+.form-select {
+  padding: 0.6rem 0;
+}
+
+/* This styles the placeholder text. */
+.nav-search::placeholder {
+  color: rgba(247, 249, 251, 0.68);
+  opacity: 0.9;
+}
+
+.form-input::placeholder,
+.form-select::placeholder,
+.search::placeholder {
+  color: rgba(31, 58, 95, 0.55);
+  opacity: 0.9;
+}
+
+/* This keeps the create collection field easy to read. */
+.search-create-strip .form-input,
+.create-row .form-input,
+input[name="collectionName"] {
+  color: #0f172a !important;
+  -webkit-text-fill-color: #0f172a;
+  background: rgba(255, 255, 255, 0.92);
+  padding: 0.6rem 0.45rem;
+}
+
+.nav-search:focus,
+.form-input:focus,
+.form-select:focus {
+  outline: none;
+  border-color: var(--primary);
+}
+
+/* This lets the main area fill the page. */
+.app-main {
+  flex: 1;
+}
+
+/* This sets the page screen height. */
+.screen {
+  min-height: calc(100vh - 68px);
+}
+
+/* This gives space to the main page sections. */
+.hero-block,
+.page-header,
+.flow-section {
+  width: 100%;
+  padding-left: 1.25rem;
+  padding-right: 1.25rem;
+}
+
+.hero-block > *,
+.page-header > *,
+.flow-section > * {
+  width: 100%;
+  max-width: 1100px;
+  margin: 0 auto;
+  border-left: 1px solid rgba(255, 255, 255, 0.14);
+  border-right: 1px solid rgba(255, 255, 255, 0.14);
+  padding-left: 1rem;
+  padding-right: 1rem;
+}
+
+/* This styles the top hero area. */
+.hero-block {
+  padding-top: 2rem;
+  padding-bottom: 1.25rem;
+  background: var(--surface-soft);
+  border-bottom: 1px solid var(--line);
+}
+
+/* This styles the big page titles. */
+.hero-block h2,
+.page-header h2 {
+  color: var(--primary);
+  font-size: clamp(2rem, 3vw, 2.6rem);
+  font-weight: 800;
+  letter-spacing: -0.03em;
+}
+
+.hero-text,
+.page-subtitle {
+  margin-top: 0.35rem;
+  max-width: 48rem;
+  color: var(--muted);
+  font-size: 0.92rem;
+}
+
+/* This adds space around the page header. */
+.page-header {
+  padding-top: 1.1rem;
+  padding-bottom: 0.4rem;
+}
+
+/* This gives the workspace header a tighter look. */
+.workspace-header {
+  padding-bottom: 0.15rem;
+}
+
+/* This styles the small section label text. */
+.section-kicker {
+  margin-bottom: 0.3rem;
+  font-size: 0.7rem;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--primary);
+  opacity: 0.75;
+}
+
+/* This lines up section titles and actions. */
+.section-header-row {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 1rem;
+  margin-bottom: 0.7rem;
+}
+
+.section-title {
+  margin: 0;
+  font-size: 1rem;
+  font-weight: 800;
+  letter-spacing: 0.02em;
+  color: var(--primary);
+}
+
+/* This centers items in smaller title rows. */
+.compact-row {
+  align-items: center;
+}
+
+/* This adds space around each content section. */
+.flow-section {
+  padding-top: 1.15rem;
+  padding-bottom: 1.15rem;
+}
+
+/* This adds a line under the create area. */
+.search-create-strip {
+  border-bottom: 1px solid var(--line);
+}
+
+/* This keeps form items on one line. */
+.form-inline {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+
+.create-row {
+  flex: 1;
+  justify-content: flex-end;
+}
+
+.create-row .form-input {
+  min-width: 250px;
+}
+
+/* This styles the main buttons. */
+.btn {
+  border: 0;
+  border-radius: 0.35rem;
+  padding: 0.68rem 0.95rem;
+  font-family: inherit;
+  font-size: 0.88rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: opacity 0.18s ease, transform 0.18s ease, background-color 0.18s ease;
+}
+
+.btn:hover:not(:disabled) {
+  transform: translateY(-1px);
+  opacity: 0.94;
+}
+
+.btn-primary {
+  background: var(--primary);
+  color: #ffffff;
+}
+
+.btn-secondary {
+  background: rgba(108, 154, 139, 0.16);
+  color: var(--primary);
+}
+
+.btn-ghost {
+  padding: 0.45rem 0.2rem;
+  color: var(--accent);
+  background: transparent;
+}
+
+.btn-ghost:hover:not(:disabled) {
+  background: transparent;
+  color: #b65414;
+}
+
+.file-picker-label {
+  cursor: pointer;
+}
+
+.inline-error {
+  margin-top: 0.7rem;
+  color: var(--accent);
+  font-size: 0.86rem;
+  font-weight: 700;
+}
+
+.alert {
+  margin-top: 0.75rem;
+  padding: 0.75rem 0.9rem;
+  background: rgba(227, 100, 20, 0.09);
+  border-left: 2px solid var(--accent);
+  color: #a44f14;
+}
+
+/* This tightens the upload section spacing. */
+.top-upload-section {
+  padding-top: 0.25rem;
+}
+
+/* This lays out the upload row. */
+.upload-strip {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  flex-wrap: wrap;
+}
+
+.upload-zone,
+.upload-inline {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 0.75rem;
+  flex-wrap: wrap;
+}
+
+.file-name {
+  font-size: 0.84rem;
+  color: var(--muted);
+}
+
+.top-file-name {
+  display: block;
+  margin-top: 0.35rem;
+}
+
+/* This holds the collection and dataset rows. */
+.entity-list {
+  display: flex;
+  flex-direction: column;
+  border-top: 1px solid var(--line);
+}
+
+.entity-row {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  padding: 0.95rem 0;
+  border-bottom: 1px solid var(--line);
+}
+
+.entity-row.clickable {
+  cursor: pointer;
+}
+
+.entity-row.clickable:hover,
+.result-row:hover {
+  background: rgba(31, 58, 95, 0.03);
+}
+
+/* This removes width limits in inline rows. */
+.entity-row-inline .entity-main {
+  max-width: none;
+}
+
+/* This gives the main row text room to grow. */
+.entity-main {
+  flex: 1 1 0;
+  min-width: 0;
+}
+
+.entity-title {
+  display: block;
+  font-size: 0.96rem;
+  font-weight: 700;
+  color: var(--primary);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.entity-meta,
+.entity-date {
+  font-size: 0.83rem;
+  color: var(--muted);
+}
+
+.entity-date {
+  min-width: 110px;
+  white-space: nowrap;
+}
+
+.entity-actions {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 0.75rem;
+  min-width: 160px;
+}
+
+.dataset-action-btn {
+  white-space: nowrap;
+}
+
+.empty-state,
+.loading {
+  min-height: 24vh;
+  display: grid;
+  place-content: center;
+  text-align: center;
+  color: var(--muted);
+}
+
+.empty-state h3 {
+  margin-bottom: 0.25rem;
+  color: var(--primary);
+}
+
+/* This lays out the result summary numbers. */
+.stats-row {
+  max-width: 1100px;
+  width: calc(100% - 2.5rem);
+  margin: 0 auto;
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 1rem;
+  padding: 0.8rem 0 1rem;
+  border-bottom: 1px solid var(--line);
+}
+
+.stat-card {
+  padding-left: 0.2rem;
+  border-right: 1px solid var(--line);
+}
+
+.stat-card:last-child {
+  border-right: 0;
+}
+
+.stat-label {
+  font-size: 0.68rem;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+
+.stat-value {
+  margin-top: 0.15rem;
+  font-size: 1.65rem;
+  font-weight: 800;
+  color: var(--primary);
+}
+
+.stat-card.danger .stat-value {
+  color: var(--accent);
+}
+
+.stat-card.warning .stat-value {
+  color: var(--risk-medium);
+}
+
+/* This styles the sort bar above results. */
+.results-toolbar {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  justify-content: flex-start;
+  margin-bottom: 0.85rem;
+}
+
+/* This sizes the sort dropdown. */
+.results-toolbar .form-select {
+  width: auto;
+  min-width: 180px;
+}
+
+.results-table {
+  width: 100%;
+}
+
+.results-head {
+  display: grid;
+  grid-template-columns: 2fr 2fr 1fr 0.8fr;
+  gap: 1rem;
+  padding-bottom: 0.5rem;
+  color: var(--muted);
+  font-size: 0.7rem;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+}
+
+.results-list {
+  display: flex;
+  flex-direction: column;
+}
+
+.result-row {
+  width: 100%;
+  display: grid;
+  grid-template-columns: 2fr 2fr 1fr 0.8fr;
+  gap: 1rem;
+  align-items: center;
+  padding: 0.9rem 0;
+  border: 0;
+  border-top: 1px solid var(--line);
+  background: transparent;
+  color: inherit;
+  text-align: left;
+  font: inherit;
+  cursor: pointer;
+}
+
+/* This keeps result columns from overflowing. */
+.result-col {
+  min-width: 0;
+}
+
+/* This trims long file names neatly. */
+.result-file {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.result-score {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 0.35rem;
+}
+
+.result-percent {
+  font-size: 0.88rem;
+  font-weight: 700;
+}
+
+.result-risk {
+  font-size: 0.75rem;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.risk-high {
+  color: var(--accent);
+}
+
+.risk-medium {
+  color: var(--risk-medium);
+}
+
+.risk-low {
+  color: var(--primary);
+}
+
+/* This draws the similarity bar. */
+.sim-bar {
+  width: 100%;
+  max-width: 120px;
+  height: 4px;
+  background: rgba(31, 58, 95, 0.12);
+  border-radius: 999px;
+  overflow: hidden;
+}
+
+/* This fills the similarity bar. */
+.sim-bar-fill {
+  height: 100%;
+  border-radius: 999px;
+}
+
+/* This styles the run progress area. */
+.progress-shell {
+  padding-top: 0.5rem;
+}
+
+.progress-panel {
+  display: grid;
+  gap: 1rem;
+}
+
+.progress-heading {
+  padding-bottom: 0.75rem;
+  border-bottom: 1px solid var(--line);
+}
+
+.run-meta {
+  margin-top: 0.25rem;
+  font-size: 0.84rem;
+  color: var(--muted);
+}
+
+.progress-overview {
+  display: grid;
+  gap: 0.5rem;
+}
+
+.progress-summary {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+}
+
+.progress-bar {
+  width: 100%;
+  height: 8px;
+  background: rgba(108, 154, 139, 0.18);
+  border-radius: 999px;
+  overflow: hidden;
+}
+
+.progress-fill {
+  background: var(--primary);
+  border-radius: 999px;
+}
+
+.progress-fill.done {
+  background: var(--secondary);
+}
+
+.progress-fill.failed {
+  background: var(--accent);
+}
+
+/* This styles the list of run stages. */
+.stage-list {
+  list-style: none;
+  display: grid;
+  gap: 0.65rem;
+}
+
+/* This styles each stage row. */
+.stage-item {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.stage-number {
+  width: 24px;
+  height: 24px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  background: rgba(31, 58, 95, 0.08);
+  color: var(--muted);
+  font-size: 0.74rem;
+  font-weight: 700;
+}
+
+.stage-number.completed {
+  background: var(--secondary);
+  color: #ffffff;
+}
+
+.stage-number.active {
+  background: var(--accent);
+  color: #ffffff;
+}
+
+.stage-label {
+  color: var(--text);
+  font-size: 0.9rem;
+}
+
+.stage-label.active {
+  color: var(--accent);
+}
+
+.stage-label.completed {
+  color: var(--primary);
+}
+
+.progress-actions {
+  display: flex;
+  justify-content: flex-end;
+}
+
+/* This styles the comparison page header. */
+.compare-header {
+  align-items: flex-start;
+  justify-content: space-between;
+}
+
+/* This lines up the comparison title area. */
+.compare-heading {
+  display: flex;
+  align-items: flex-start;
+  gap: 1rem;
+  flex-wrap: wrap;
+}
+
+.badge {
+  border-radius: 999px;
+  padding: 0.3rem 0.75rem;
+  font-size: 0.72rem;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.badge-high {
+  background: rgba(227, 100, 20, 0.12);
+  color: #a44f14;
+}
+
+.badge-medium {
+  background: rgba(108, 154, 139, 0.16);
+  color: #5d6d66;
+}
+
+.badge-low {
+  background: rgba(31, 58, 95, 0.08);
+  color: var(--primary);
+}
+
+/* This builds the side by side code view. */
+.code-grid {
+  max-width: 1100px;
+  margin: 0 auto;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1rem;
+  padding: 0 1.25rem 1.25rem;
+}
+
+.code-pane {
+  min-height: 66vh;
+  background: var(--surface);
+  border: 1px solid var(--line);
+}
+
+.code-pane-header {
+  padding: 0.8rem 0.95rem;
+  border-bottom: 1px solid var(--line);
+  color: var(--primary);
+  font-weight: 700;
+  font-size: 0.82rem;
+}
+
+.code-pane pre {
+  margin: 0;
+  padding: 0.95rem;
+  background: #fbfcfe;
+  color: var(--text);
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+  word-break: break-word;
+  line-height: 1.65;
+}
+
+/* This uses a code style font. */
+.mono {
+  font-family: "Consolas", "SFMono-Regular", monospace;
+}
+
+/* This styles muted text. */
+.text-muted {
+  color: var(--muted);
+}
+
+.text-small {
+  font-size: 0.82rem;
+}
+
+.mb-1 {
+  margin-bottom: 0.5rem;
+}
+
+.mt-1 {
+  margin-top: 0.5rem;
+}
+
+/* This adjusts the layout for smaller screens. */
+@media (max-width: 1024px) {
+  .stats-row {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+/* This changes the layout for phones. */
+@media (max-width: 768px) {
+  .site-nav-inner {
+    min-height: 64px;
+    padding: 0.85rem 1rem;
+  }
+
+  .site-nav-inner {
+    min-height: auto;
+    padding: 0.75rem 1rem;
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .nav-left,
+  .nav-right {
+    width: 100%;
+  }
+
+  .nav-center {
+    position: static;
+    left: auto;
+    transform: none;
+    justify-content: center;
+    flex-wrap: wrap;
+    gap: 1rem;
+    order: 2;
+  }
+
+  .nav-right {
+    justify-content: flex-end;
+    order: 3;
+  }
+
+  .nav-search {
+    min-width: 150px;
+  }
+
+  .hero-block,
+  .page-header,
+  .flow-section,
+  .code-grid {
+    padding-left: 1rem;
+    padding-right: 1rem;
+  }
+
+  .section-header-row,
+  .form-inline,
+  .upload-strip,
+  .upload-zone,
+  .compare-header,
+  .compare-heading {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .create-row {
+    justify-content: stretch;
+  }
+
+  .form-inline .btn,
+  .upload-zone .btn,
+  .dataset-action-btn {
+    width: 100%;
+  }
+
+  .stats-row {
+    width: calc(100% - 2rem);
+    grid-template-columns: 1fr;
+    gap: 0.75rem;
+  }
+
+  .stat-card {
+    border-right: 0;
+    border-bottom: 1px solid var(--line);
+    padding-bottom: 0.7rem;
+  }
+
+  .stat-card:last-child {
+    border-bottom: 0;
+  }
+
+  .entity-row,
+  .result-row,
+  .results-head {
+    grid-template-columns: 1fr;
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .results-head {
+    display: none;
+  }
+
+  .entity-date,
+  .entity-actions,
+  .progress-actions,
+  .result-risk {
+    justify-content: flex-start;
+    text-align: left;
+    min-width: 0;
+  }
+
+  .code-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .code-pane {
+    min-height: 42vh;
+  }
+}

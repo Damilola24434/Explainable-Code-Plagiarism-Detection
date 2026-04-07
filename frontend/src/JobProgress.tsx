@@ -108,12 +108,12 @@ export default function JobProgress({ runId, onComplete, onCancel }: Props) {
 
   if (loadError) {
     return (
-      <div className="card" style={{ maxWidth: 560, margin: "0 auto" }}>
-        <div className="card-body">
+      <section className="flow-section progress-shell">
+        <div>
           <div className="alert alert-error">{loadError}</div>
-          <button className="btn btn-secondary" onClick={onCancel}>Back</button>
+          <button className="btn btn-secondary" onClick={onCancel}>Back to Dataset</button>
         </div>
-      </div>
+      </section>
     );
   }
 
@@ -128,25 +128,24 @@ export default function JobProgress({ runId, onComplete, onCancel }: Props) {
   const analysisDuration = getAnalysisDuration(runData);
 
   return (
-    <div className="card" style={{ maxWidth: 560, margin: "0 auto" }}>
-      <div className="card-header">
-        <h2 style={{ margin: 0 }}>
-          {getRunTitle(runData)}
-        </h2>
-        <span className="text-muted text-small">Run {runId.slice(0, 8)}...</span>
-      </div>
-      <div className="card-body">
-        <div className="mb-2">
-          <div style={{ display: "flex", justifyContent: "space-between", marginBottom: "0.375rem" }}>
-            <span className="text-small" style={{ fontWeight: 500 }}>Overall Progress</span>
+    <section className="flow-section progress-shell">
+      <div className="progress-panel">
+        <div className="progress-heading">
+          <h2>{getRunTitle(runData)}</h2>
+          <p className="run-meta">Run ID: {runId.slice(0, 8)}...</p>
+        </div>
+
+        <div className="progress-overview">
+          <div className="progress-summary">
+            <span className="text-small">Progress</span>
             <span className="text-small text-muted">{runData.progress_pct}%</span>
           </div>
           <div className="progress-bar">
             <div className={`progress-fill ${fillClass}`} style={{ width: `${runData.progress_pct}%` }} />
           </div>
           {analysisDuration && (
-            <div className="text-small text-muted" style={{ marginTop: "0.5rem" }}>
-              {isDone || isFailed ? "Total analysis time" : "Elapsed analysis time"}: {analysisDuration}
+            <div className="text-small text-muted">
+              {isDone || isFailed ? "Time" : "Elapsed"}: {analysisDuration}
             </div>
           )}
         </div>
@@ -155,10 +154,8 @@ export default function JobProgress({ runId, onComplete, onCancel }: Props) {
           <div className="alert alert-error">{runData.error_message}</div>
         )}
 
-        <div style={{ marginTop: "1.25rem" }}>
-          <p className="text-small text-muted mb-1" style={{ fontWeight: 600, textTransform: "uppercase", letterSpacing: "0.05em" }}>
-            Analysis Stages
-          </p>
+        <div>
+          <p className="section-kicker">Stages</p>
           <ul className="stage-list">
             {stages.map((stage, i) => {
               const isCompleted = isDone || currentStageIdx > i;
@@ -177,19 +174,14 @@ export default function JobProgress({ runId, onComplete, onCancel }: Props) {
           </ul>
         </div>
 
-        <div style={{ display: "flex", gap: "0.5rem", justifyContent: "flex-end", marginTop: "1.5rem" }}>
-          {!isDone && (
-            <button className="btn btn-secondary" onClick={onCancel}>
-              {isFailed ? "Back" : "Cancel"}
-            </button>
-          )}
-          {isDone && (
-            <button className="btn btn-primary btn-lg" onClick={onComplete}>
-              View Results
-            </button>
+        <div className="progress-actions">
+          {isDone && !isFailed ? (
+            <button className="btn btn-primary" onClick={onComplete}>View Results</button>
+          ) : (
+            <button className="btn btn-secondary" onClick={onCancel}>{isFailed ? "Back to Dataset" : "Cancel"}</button>
           )}
         </div>
       </div>
-    </div>
+    </section>
   );
 }

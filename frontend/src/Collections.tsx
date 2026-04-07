@@ -17,9 +17,10 @@ import { getCollections, createCollection, deleteCollection } from "./api/collec
 
 interface CollectionsProps {
   onSelectCollection?: (collection: ApiCollection) => void;
+  searchQuery: string;
 }
 
-export default function Collections({ onSelectCollection }: CollectionsProps) {
+export default function Collections({ onSelectCollection, searchQuery }: CollectionsProps) {
   const [collections, setCollections] = useState<ApiCollection[]>([]);
   const [input, setInput] = useState("");
   const [error, setError] = useState<string>("");
@@ -85,73 +86,80 @@ export default function Collections({ onSelectCollection }: CollectionsProps) {
     }
   };
 
-  return (
-    <div>
-      <div className="page-header">
-        <div>
-          <h1>Collections</h1>
-          <p className="text-muted text-small" style={{ marginTop: "0.25rem" }}>
-            Organise student submission datasets into collections.
-          </p>
-        </div>
-      </div>
+  const filteredCollections = collections.filter((collection) =>
+    collection.name.toLowerCase().includes(searchQuery.toLowerCase().trim()),
+  );
 
-      <div className="card mb-2">
-        <div className="card-header">
-          <h3 style={{ margin: 0 }}>New Collection</h3>
+  return (
+    <section className="screen page-collections">
+      <section className="hero-block">
+        <div>
+          <h2>Collections</h2>
+          <p className="hero-text">Create, review, and open saved collections.</p>
         </div>
-        <div className="card-body">
-          <form onSubmit={handleCreate} className="form-inline">
+      </section>
+
+      <section className="flow-section search-create-strip">
+        <div className="section-header-row compact-row">
+          <h3 className="section-title">Create Collection</h3>
+          <form onSubmit={handleCreate} className="form-inline create-row">
             <input
               className="form-input"
               type="text"
               value={input}
               onChange={(e) => setInput(e.target.value)}
-              placeholder="Enter collection name"
+              placeholder="Collection name"
               name="collectionName"
             />
             <button type="submit" className="btn btn-primary" disabled={creating}>
               {creating ? "Creating..." : "Create"}
             </button>
           </form>
-          {error && <p className="text-muted" style={{ color: "#b42318", marginTop: "0.75rem" }}>{error}</p>}
         </div>
-      </div>
+        {error && <p className="inline-error">{error}</p>}
+      </section>
 
-      {collections.length === 0 ? (
-        <div className="empty-state">
-          <h3>No collections yet</h3>
-          <p>Create a collection above to get started.</p>
+      <section className="flow-section flow-stretch">
+        <div className="section-header-row">
+          <div>
+            <p className="section-kicker">Directory</p>
+            <h3 className="section-title">All Collections</h3>
+          </div>
         </div>
-      ) : (
-        <div className="collection-list">
-          {collections.map((collection) => (
-            <div
-              key={collection.id}
-              className="collection-row"
-              onClick={() => onSelectCollection?.(collection)}
-              role="button"
-              tabIndex={0}
-              onKeyDown={(e) => e.key === "Enter" && onSelectCollection?.(collection)}
-            >
-              <div style={{ flex: 1 }}>
-                <div className="collection-name">{collection.name}</div>
-                <div className="collection-meta">
-                  Created {new Date(collection.created_at).toLocaleDateString()}
-                </div>
-              </div>
-              <button
-                className="btn btn-ghost btn-sm"
-                onClick={(e) => handleDelete(e, collection.id)}
-                title="Delete collection"
-                aria-label={`Delete ${collection.name}`}
+
+        {filteredCollections.length === 0 ? (
+          <div className="empty-state">
+            <h3>{collections.length === 0 ? "No collections yet" : "No matching collections"}</h3>
+            <p>{collections.length === 0 ? "Create a collection to begin." : "Try a different search."}</p>
+          </div>
+        ) : (
+          <div className="entity-list" aria-label="Collections">
+            {filteredCollections.map((collection) => (
+              <article
+                key={collection.id}
+                className="entity-row entity-row-inline clickable"
+                onClick={() => onSelectCollection?.(collection)}
+                title="Open collection"
               >
-                Delete
-              </button>
-            </div>
-          ))}
-        </div>
-      )}
-    </div>
+                <div className="entity-main">
+                  <span className="entity-title">{collection.name}</span>
+                </div>
+                <span className="entity-date">{new Date(collection.created_at).toLocaleDateString()}</span>
+                <div className="entity-actions">
+                  <button
+                    className="btn btn-ghost btn-sm"
+                    onClick={(e) => handleDelete(e, collection.id)}
+                    title="Delete collection"
+                    aria-label={`Delete ${collection.name}`}
+                  >
+                    Delete
+                  </button>
+                </div>
+              </article>
+            ))}
+          </div>
+        )}
+      </section>
+    </section>
   );
 }
