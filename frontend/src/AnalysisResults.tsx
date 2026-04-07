@@ -12,23 +12,26 @@ import { useEffect, useState } from "react";
 import { getRunResults, type SimilarityResult } from "./api/runs";
 import SideBySideComparison from "./SideBySideComparison";
 
+type NavItem = {
+  label: string;
+  onClick?: () => void;
+  active?: boolean;
+};
+
 interface Props {
   runId: string;
+  datasetName: string;
+  collectionName: string;
   onBack: () => void;
+  onBackToCollections: () => void;
+  onNavChange?: (items: NavItem[]) => void;
 }
 
 function getRiskColor(risk: string): string {
   // set risk color
-  if (risk === "HIGH") return "var(--danger)";
-  if (risk === "MEDIUM") return "var(--warning)";
-  return "var(--success)";
-}
-
-function getRiskBadgeClass(risk: string): string {
-  // set risk badge style
-  if (risk === "HIGH") return "badge badge-high";
-  if (risk === "MEDIUM") return "badge badge-medium";
-  return "badge badge-low";
+  if (risk === "HIGH") return "#E07A5F";
+  if (risk === "MEDIUM") return "#9f8458";
+  return "#0F3D3E";
 }
 
 function sortRows(rows: SimilarityResult[], sortBy: "similarity" | "file_a") {
@@ -44,7 +47,14 @@ function countRisk(rows: SimilarityResult[], risk: "HIGH" | "MEDIUM" | "LOW") {
   return rows.filter((row) => row.risk === risk).length;
 }
 
-export default function AnalysisResults({ runId, onBack }: Props) {
+export default function AnalysisResults({
+  runId,
+  datasetName,
+  collectionName,
+  onBack,
+  onBackToCollections,
+  onNavChange,
+}: Props) {
   const [resultRows, setResultRows] = useState<SimilarityResult[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [loadError, setLoadError] = useState<string | null>(null);
@@ -71,6 +81,23 @@ export default function AnalysisResults({ runId, onBack }: Props) {
     loadResults();
   }, [runId]);
 
+  useEffect(() => {
+    const items: NavItem[] = [
+      { label: "Collections", onClick: onBackToCollections },
+      { label: collectionName, onClick: onBack },
+      { label: datasetName, onClick: onBack },
+      selectedRow
+        ? { label: "Results", onClick: () => setSelectedRow(null) }
+        : { label: "Results", active: true },
+    ];
+
+    if (selectedRow) {
+      items.push({ label: "Comparison", active: true });
+    }
+
+    onNavChange?.(items);
+  }, [collectionName, datasetName, onBack, onBackToCollections, onNavChange, selectedRow]);
+
   if (selectedRow) {
     return (
       <SideBySideComparison
@@ -79,6 +106,7 @@ export default function AnalysisResults({ runId, onBack }: Props) {
         fileAName={selectedRow.file_a}
         fileBName={selectedRow.file_b}
         similarity={selectedRow.similarity}
+        datasetName={datasetName}
         onBack={() => setSelectedRow(null)}
       />
     );
@@ -88,10 +116,9 @@ export default function AnalysisResults({ runId, onBack }: Props) {
 
   if (loadError) {
     return (
-      <div>
+      <section className="flow-section">
         <div className="alert alert-error">{loadError}</div>
-        <button className="btn btn-secondary" onClick={onBack}>Back</button>
-      </div>
+      </section>
     );
   }
 
@@ -101,89 +128,93 @@ export default function AnalysisResults({ runId, onBack }: Props) {
   const lowCount = countRisk(resultRows, "LOW");
 
   return (
-    <div>
+    <section className="screen page-results">
       <div className="page-header">
-        <button className="btn btn-secondary btn-sm" onClick={onBack}>← Back to Dataset</button>
-        <h1>Plagiarism Analysis Results</h1>
+        <div>
+          <p className="section-kicker">Results</p>
+          <h2>Analysis Results</h2>
+          <p className="page-subtitle">Review flagged file pairs.</p>
+        </div>
       </div>
 
-      <div className="stats-row">
+      <div className="stats-row results-summary-row">
         <div className="stat-card">
-          <div className="stat-label">Total Pairs</div>
+          <div className="stat-label">Total</div>
           <div className="stat-value">{resultRows.length}</div>
         </div>
         <div className="stat-card danger">
-          <div className="stat-label">High Risk</div>
+          <div className="stat-label">High</div>
           <div className="stat-value">{highCount}</div>
         </div>
         <div className="stat-card warning">
-          <div className="stat-label">Medium Risk</div>
+          <div className="stat-label">Medium</div>
           <div className="stat-value">{mediumCount}</div>
         </div>
         <div className="stat-card success">
-          <div className="stat-label">Low Risk</div>
+          <div className="stat-label">Low</div>
           <div className="stat-value">{lowCount}</div>
         </div>
       </div>
 
-      <div style={{ display: "flex", alignItems: "center", gap: "0.5rem", marginBottom: "0.875rem" }}>
-        <label className="form-label" style={{ margin: 0, whiteSpace: "nowrap" }}>Sort by:</label>
-        <select
-          className="form-select"
-          style={{ width: "auto" }}
-          value={sortBy}
-          onChange={(e) => setSortBy(e.target.value as "similarity" | "file_a")}
-        >
-          <option value="similarity">Similarity (High to Low)</option>
-          <option value="file_a">File Name</option>
-        </select>
-      </div>
-
-      {resultRows.length === 0 ? (
-        <div className="empty-state">
-          <h3>No pairs found</h3>
-          <p>There were not enough files in the dataset to produce comparison pairs.</p>
+      <section className="flow-section">
+        <div className="results-toolbar">
+          <label className="form-label" htmlFor="results-sort">Sort</label>
+          <select
+            id="results-sort"
+            className="form-select"
+            value={sortBy}
+            onChange={(e) => setSortBy(e.target.value as "similarity" | "file_a")}
+          >
+            <option value="similarity">Similarity</option>
+            <option value="file_a">File Name</option>
+          </select>
         </div>
-      ) : (
-        <div className="table-container">
-          <table className="data-table">
-            <thead>
-              <tr>
-                <th>Submission A</th>
-                <th>Submission B</th>
-                <th className="align-right">Similarity</th>
-                <th className="align-center">Risk Level</th>
-              </tr>
-            </thead>
-            <tbody>
+
+        {resultRows.length === 0 ? (
+          <div className="empty-state">
+            <h3>No pairs found</h3>
+            <p>Not enough files for comparison.</p>
+          </div>
+        ) : (
+          <div className="results-table">
+            <div className="results-head" aria-hidden="true">
+              <span>File A</span>
+              <span>File B</span>
+              <span>Similarity</span>
+              <span>Risk</span>
+            </div>
+            <div className="results-list">
               {sortedRows.map((row) => (
-                <tr
+                <button
                   key={row.id}
-                  className="clickable"
+                  type="button"
+                  className="result-row"
                   onClick={() => setSelectedRow(row)}
                   title="Click to view side-by-side comparison"
                 >
-                  <td className="mono">{row.file_a}</td>
-                  <td className="mono">{row.file_b}</td>
-                  <td className="align-right">
-                    <div className="sim-bar-wrap">
-                      <span style={{ fontWeight: 600, color: getRiskColor(row.risk), fontSize: "0.875rem" }}>
-                        {(row.similarity * 100).toFixed(1)}%
-                      </span>
-                      <div className="sim-bar">
-                        <div className="sim-bar-fill" style={{ width: `${row.similarity * 100}%`, background: getRiskColor(row.risk) }} />
-                      </div>
+                  <span className="result-col result-file mono">{row.file_a}</span>
+                  <span className="result-col result-file mono">{row.file_b}</span>
+                  <span className="result-col result-score">
+                    <span className={`result-percent risk-${row.risk.toLowerCase()}`}>
+                      {(row.similarity * 100).toFixed(1)}%
+                    </span>
+                    <div className="sim-bar">
+                      <div
+                        className="sim-bar-fill"
+                        style={{ width: `${row.similarity * 100}%`, background: getRiskColor(row.risk) }}
+                      />
                     </div>
-                  </td>
-                  <td className="align-center">
-                    <span className={getRiskBadgeClass(row.risk)}>{row.risk}</span>
-                  </td>
-                </tr>
+                  </span>
+                  <span className={`result-col result-risk risk-${row.risk.toLowerCase()}`}>{row.risk}</span>
+                </button>
               ))}
-            </tbody>
-          </table>
-        </div>
-      )}
-    </div>
+            </div>
+          </div>
+        )}
+      </section>
+    </section>
   );
 }
+// This file shows the final plagiarism results after a run is complete.
+// It loads result data from the backend, sorts the matched file pairs,
+// shows risk levels and similarity scores, and lets the user open a side by side comparison view.

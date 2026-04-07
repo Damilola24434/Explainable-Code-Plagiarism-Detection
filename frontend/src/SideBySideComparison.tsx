@@ -18,6 +18,7 @@ interface Props {
   fileAName: string;
   fileBName: string;
   similarity: number;
+  datasetName?: string;
   onBack: () => void;
 }
 
@@ -50,7 +51,8 @@ export default function SideBySideComparison({
   fileAName,
   fileBName,
   similarity,
-  onBack,
+  datasetName: _datasetName,
+  onBack: _onBack,
 }: Props) {
   const [leftText, setLeftText] = useState<string | null>(null);
   const [rightText, setRightText] = useState<string | null>(null);
@@ -77,17 +79,26 @@ export default function SideBySideComparison({
   const badgeClass = getRiskBadge(risk);
 
   return (
-    <div>
-      <div className="page-header">
-        <button className="btn btn-secondary btn-sm" onClick={onBack}>← Back to Results</button>
-        <h1>File Comparison</h1>
-        <span className={badgeClass} style={{ fontSize: "0.8125rem", padding: "0.25rem 0.75rem" }}>
+    <section className="screen page-compare">
+      <div className="page-header compare-header">
+        <div className="compare-heading">
+          <div>
+            <p className="section-kicker">Manual Review</p>
+            <h2>File Comparison</h2>
+            <p className="page-subtitle">
+              Compare the flagged files side by side.
+            </p>
+          </div>
+        </div>
+        <span className={badgeClass}>
           {risk} - {(similarity * 100).toFixed(1)}% similar
         </span>
       </div>
 
       {loadError ? (
-        <div className="alert alert-error">{loadError}</div>
+        <div className="flow-section">
+          <div className="alert alert-error">{loadError}</div>
+        </div>
       ) : leftText === null || rightText === null ? (
         <div className="loading">Loading file content...</div>
       ) : (
@@ -102,6 +113,6 @@ export default function SideBySideComparison({
           </div>
         </div>
       )}
-    </div>
+    </section>
   );
 }

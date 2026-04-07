@@ -20,12 +20,20 @@ import { createRun, type Run } from "./api/runs";
 import AnalysisResults from "./AnalysisResults";
 import JobProgress from "./JobProgress";
 
+type NavItem = {
+  label: string;
+  onClick?: () => void;
+  active?: boolean;
+};
+
 interface Props {
   collection: Collection;
   onBack: () => void;
+  onNavChange?: (items: NavItem[]) => void;
+  searchQuery: string;
 }
 
-export default function CollectionDetails({ collection, onBack }: Props) {
+export default function CollectionDetails({ collection, onBack, onNavChange, searchQuery }: Props) {
   const [datasetList, setDatasetList] = useState<Dataset[]>([]);
   const [isUploading, setIsUploading] = useState(false);
   const [selectedZip, setSelectedZip] = useState<File | null>(null);
@@ -34,6 +42,8 @@ export default function CollectionDetails({ collection, onBack }: Props) {
   const [showResultsPage, setShowResultsPage] = useState(false);
   const [showProgressPage, setShowProgressPage] = useState(false);
   const [activeRun, setActiveRun] = useState<Run | null>(null);
+  const [activeDatasetId, setActiveDatasetId] = useState<string | null>(null);
+  const [completedRunsByDataset, setCompletedRunsByDataset] = useState<Record<string, Run>>({});
 
   const resetZipInput = () => {
     // clear file input value
@@ -53,15 +63,19 @@ export default function CollectionDetails({ collection, onBack }: Props) {
     }
   };
 
-  const openProgressPage = (run: Run) => {
+  const openProgressPage = (run: Run, datasetId: string) => {
     // show progress view
     setActiveRun(run);
+    setActiveDatasetId(datasetId);
     setShowProgressPage(true);
     setShowResultsPage(false);
   };
 
   const openResultsPage = () => {
     // show results view
+    if (activeRun && activeDatasetId) {
+      setCompletedRunsByDataset((prev) => ({ ...prev, [activeDatasetId]: activeRun }));
+    }
     setShowProgressPage(false);
     setShowResultsPage(true);
   };
@@ -71,6 +85,7 @@ export default function CollectionDetails({ collection, onBack }: Props) {
     setShowProgressPage(false);
     setShowResultsPage(false);
     setActiveRun(null);
+    setActiveDatasetId(null);
   };
 
   useEffect(() => {
@@ -103,112 +118,163 @@ export default function CollectionDetails({ collection, onBack }: Props) {
     try {
       setRunError(null);
       const run = await createRun({ dataset_id: datasetId, config_json: {} });
-      openProgressPage(run);
+      openProgressPage(run, datasetId);
     } catch {
       console.error("start run");
       setRunError("Failed to start analysis. Please try again.");
     }
   };
 
+  const filteredDatasets = datasetList.filter((dataset) =>
+    dataset.name.toLowerCase().includes(searchQuery.toLowerCase().trim()),
+  );
+
+  const openStoredResults = (datasetId: string) => {
+    const run = completedRunsByDataset[datasetId];
+    if (!run) return;
+    setActiveRun(run);
+    setActiveDatasetId(datasetId);
+    setShowProgressPage(false);
+    setShowResultsPage(true);
+  };
+
+  const activeDatasetName = activeDatasetId
+    ? datasetList.find((dataset) => dataset.id === activeDatasetId)?.name ?? "Current Dataset"
+    : "Current Dataset";
+
+  useEffect(() => {
+    const returnToCollections = () => {
+      closeRunViews();
+      onBack();
+    };
+
+    if (showProgressPage && activeRun) {
+      onNavChange?.([
+        { label: "Collections", onClick: returnToCollections },
+        { label: collection.name, onClick: closeRunViews },
+        { label: activeDatasetName, onClick: closeRunViews },
+        { label: "Run", active: true },
+      ]);
+      return;
+    }
+
+    if (showResultsPage && activeRun) {
+      onNavChange?.([
+        { label: "Collections", onClick: returnToCollections },
+        { label: collection.name, onClick: closeRunViews },
+        { label: activeDatasetName, onClick: closeRunViews },
+        { label: "Results", active: true },
+      ]);
+      return;
+    }
+
+    onNavChange?.([
+      { label: "Collections", onClick: onBack },
+      { label: collection.name, active: true },
+    ]);
+  }, [activeDatasetName, activeRun, collection.name, onBack, onNavChange, showProgressPage, showResultsPage]);
+
   if (showProgressPage && activeRun) {
     return (
-      <div>
-        <div className="page-header">
-          <button className="btn btn-secondary btn-sm" onClick={onBack}>← Collections</button>
-          <h1>{collection.name}</h1>
-        </div>
+      <section className="screen page-details">
         <JobProgress
           runId={activeRun.id}
           onComplete={openResultsPage}
           onCancel={() => setShowProgressPage(false)}
         />
-      </div>
+      </section>
     );
   }
 
   if (showResultsPage && activeRun) {
     return (
-      <div>
-        <div className="page-header">
-          <button className="btn btn-secondary btn-sm" onClick={onBack}>← Collections</button>
-          <h1>{collection.name}</h1>
-        </div>
+      <section className="screen page-details">
         <AnalysisResults
           runId={activeRun.id}
+          datasetName={activeDatasetName}
+          collectionName={collection.name}
           onBack={closeRunViews}
+          onBackToCollections={onBack}
+          onNavChange={onNavChange}
         />
-      </div>
+      </section>
     );
   }
 
   return (
-    <div>
-      <div className="page-header">
-        <button className="btn btn-secondary btn-sm" onClick={onBack}>← Collections</button>
-        <h1>{collection.name}</h1>
-      </div>
-
-      <div className="card mb-2">
-        <div className="card-header">
-          <h3 style={{ margin: 0 }}>Upload Submission Dataset</h3>
-        </div>
-        <div className="card-body">
-          <p className="text-muted text-small mb-1">
-            Upload a ZIP file containing student submissions. Each top-level folder represents one student.
-          </p>
-          <form onSubmit={handleUpload}>
-            <div className="upload-zone">
-              <input
-                type="file"
-                accept=".zip"
-                id="zip-upload"
-                style={{ display: "none" }}
-                onChange={(e) => {
-                  setSelectedZip(e.target.files ? e.target.files[0] : null);
-                  setUploadError(null);
-                }}
-              />
-              <label htmlFor="zip-upload" className="btn btn-secondary" style={{ cursor: "pointer" }}>
-                Choose ZIP File
-              </label>
-              <span className="file-name">{selectedZip ? selectedZip.name : "No file selected"}</span>
-              <button type="submit" className="btn btn-primary" disabled={!selectedZip || isUploading}>
-                {isUploading ? "Uploading..." : "Upload Dataset"}
-              </button>
-            </div>
-            {uploadError && <div className="alert alert-error mt-1">{uploadError}</div>}
-          </form>
+    <section className="screen page-details">
+      <div className="page-header workspace-header">
+        <div>
+          <h2>{collection.name}</h2>
+          <p className="page-subtitle">Upload and analyze submissions</p>
         </div>
       </div>
 
-      <div className="page-header" style={{ marginTop: "1.5rem" }}>
-        <h2>Datasets</h2>
-      </div>
-
-      {runError && <div className="alert alert-error">{runError}</div>}
-
-      {datasetList.length === 0 ? (
-        <div className="empty-state">
-          <h3>No datasets yet</h3>
-          <p>Upload a ZIP file above to create your first dataset.</p>
-        </div>
-      ) : (
-        datasetList.map((d) => (
-          <div key={d.id} className="dataset-card">
-            <div className="dataset-card-header">
-              <div>
-                <div className="dataset-name">{d.name}</div>
-                <div className="dataset-meta">
-                  Added {new Date(d.created_at).toLocaleDateString()}
-                </div>
-              </div>
-              <button className="btn btn-primary" onClick={() => runJob(d.id)}>
-                Run Plagiarism Detection
-              </button>
-            </div>
+      <section className="flow-section upload-section-compact top-upload-section">
+        <form onSubmit={handleUpload} className="upload-strip">
+          <h3 className="section-title">Upload Dataset</h3>
+          <div className="upload-zone upload-inline">
+            <input
+              type="file"
+              accept=".zip"
+              id="zip-upload"
+              style={{ display: "none" }}
+              onChange={(e) => {
+                setSelectedZip(e.target.files ? e.target.files[0] : null);
+                setUploadError(null);
+              }}
+            />
+            <label htmlFor="zip-upload" className="btn btn-secondary file-picker-label">
+              Choose File
+            </label>
+            <button type="submit" className="btn btn-primary" disabled={!selectedZip || isUploading}>
+              {isUploading ? "Uploading..." : "Upload"}
+            </button>
           </div>
-        ))
-      )}
-    </div>
+        </form>
+        {selectedZip && <span className="file-name top-file-name">{selectedZip.name}</span>}
+        {uploadError && <div className="alert alert-error mt-1">{uploadError}</div>}
+      </section>
+
+      <section className="flow-section datasets-section-compact">
+        <div className="section-header-row">
+          <div>
+            <p className="section-kicker">Datasets</p>
+            <h3 className="section-title">Dataset List</h3>
+          </div>
+        </div>
+
+        {runError && <div className="alert alert-error">{runError}</div>}
+
+        {filteredDatasets.length === 0 ? (
+          <div className="empty-state compact-empty-state">
+            <h3>{datasetList.length === 0 ? "No datasets yet" : "No matching datasets"}</h3>
+            <p>{datasetList.length === 0 ? "Upload a ZIP file to begin." : "Try a different search."}</p>
+          </div>
+        ) : (
+          <div className="entity-list" aria-label="Datasets">
+            {filteredDatasets.map((d) => (
+              <article key={d.id} className="entity-row entity-row-inline">
+                <div className="entity-main">
+                  <span className="entity-title">{d.name}</span>
+                </div>
+                <span className="entity-date">{new Date(d.created_at).toLocaleDateString()}</span>
+                <div className="entity-actions">
+                  {completedRunsByDataset[d.id] ? (
+                    <button className="btn btn-primary dataset-action-btn" onClick={() => openStoredResults(d.id)}>
+                      View Results
+                    </button>
+                  ) : (
+                    <button className="btn btn-primary dataset-action-btn" onClick={() => runJob(d.id)}>
+                      Run Analysis
+                    </button>
+                  )}
+                </div>
+              </article>
+            ))}
+          </div>
+        )}
+      </section>
+    </section>
   );
 }
