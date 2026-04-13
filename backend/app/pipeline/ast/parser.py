@@ -3,6 +3,8 @@ from __future__ import annotations
 from typing import List, Tuple
 from tree_sitter import Tree, Node
 
+from .canonicalize import canonicalize_nodes_with_spans
+from .features import build_feature_handoff_payload
 from .languages import make_parser
 from .types import ASTNodeInfo
 
@@ -93,6 +95,10 @@ def parse_and_collect(
     language: str,
     max_nodes: int = 50_000,
     include_unnamed_nodes: bool = True,
+    canonicalize: bool = False,
+    normalize_statements: bool = False,
+    build_handoff: bool = False,
+    file_path: str | None = None,
     include_tree: bool = False,
 ) -> dict:
     """
@@ -106,10 +112,21 @@ def parse_and_collect(
         "node_count": int,
         "include_unnamed_nodes": bool,
         "error_count": int,
+        # Optional (for normalization pipeline)
+        "canonical_nodes": List[ASTNodeInfo],
+        "canonical_node_count": int,
+        "identifier_symbol_count": int,
+        "normalize_statements": bool,
+        "feature_handoff": dict,
         # Optional (internal use only)
         "tree": <Tree>,
       }
     """
+    if normalize_statements and not canonicalize:
+        raise ValueError("normalize_statements=True requires canonicalize=True")
+    if build_handoff and not canonicalize:
+        raise ValueError("build_handoff=True requires canonicalize=True")
+
     tree = parse_code(code, language)
     nodes = collect_nodes_with_spans(
         tree,
@@ -125,6 +142,28 @@ def parse_and_collect(
         "include_unnamed_nodes": include_unnamed_nodes,
         "error_count": error_count,
     }
+    if canonicalize:
+        canonical_nodes, identifier_map = canonicalize_nodes_with_spans(
+            tree=tree,
+            code=code,
+            language=language,
+            max_nodes=max_nodes,
+            include_unnamed_nodes=include_unnamed_nodes,
+            normalize_statements=normalize_statements,
+        )
+        result["canonical_nodes"] = canonical_nodes
+        result["canonical_node_count"] = len(canonical_nodes)
+        result["identifier_symbol_count"] = len(identifier_map)
+        result["normalize_statements"] = normalize_statements
+        if build_handoff:
+            result["feature_handoff"] = build_feature_handoff_payload(
+                language=result["language"],
+                root_type=result["root_type"],
+                error_count=result["error_count"],
+                canonical_nodes=canonical_nodes,
+                normalize_statements=normalize_statements,
+                file_path=file_path,
+            )
     if include_tree:
         result["tree"] = tree
     return result
