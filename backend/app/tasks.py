@@ -21,6 +21,10 @@ from app.celery import celery_app
 from app.core.db import SessionLocal
 from app.models.models import File, PairResult, Run, Submission
 
+#Tolu added imports for  actual implementation of token based similarity evaluation
+from similarity.evaluator import evaluate_batch, serialize_batch
+from app.models.models import CandidatePair
+
 
 ANALYSIS_STAGE_DELAY_SECONDS = float(os.getenv("ANALYSIS_STAGE_DELAY_SECONDS", "1"))
 
@@ -88,12 +92,52 @@ def get_run_files(db: Session, run_id: str) -> list[File]:
 #The AST (Abstract Syntax Tree) analysis stage is also a placeholder.
 #The final scoring is not meaningful yet—it uses random placeholder values.
 
+#Tolu added implementation of token based similarity analysis
 def run_token_stage(db: Session, run_id: str) -> None:
-    # placeholder token stage
     update_run(db, run_id, stage="TOKENS", progress_pct=30)
-    analysis_stage_delay()
+    
+    # load files for this run
+    files = get_run_files(db, run_id)
+    
+    # build submissions list for evaluate_batch
+    submissions = []
+    for file in files:
+        try:
+            with open(file.storage_key, "r", encoding="utf-8") as f:
+                code = f.read()
+            submissions.append({"id": str(file.id), "code": code})
+        except Exception:
+            # skip unreadable files
+            continue
+    
+    update_run(db, run_id, stage="TOKENS", progress_pct=40)
+    
+    # run token similarity
+    results = evaluate_batch(submissions)
+    serialized = serialize_batch(results)
+    
+    # save to candidate_pairs table
+    existing_pairs = get_existing_pairs(db, run_id)
+    rows = []
+    for r in serialized:
+        pair_key = (r["submission_a"], r["submission_b"])
+        if pair_key in existing_pairs:
+            continue
+        rows.append(
+            CandidatePair(
+                run_id=run_id,
+                file_a_id=r["submission_a"],
+                file_b_id=r["submission_b"],
+                overlap_count=r["matching_fingerprint_count"],
+                fingerprint_score=r["score"],
+            )
+        )
+    
+    if rows:
+        db.add_all(rows)
+        db.commit()
+    
     update_run(db, run_id, stage="TOKENS", progress_pct=50)
-    analysis_stage_delay()
 
 
 def run_ast_stage(db: Session, run_id: str) -> None:
