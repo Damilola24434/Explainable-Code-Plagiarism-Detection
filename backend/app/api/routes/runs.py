@@ -22,8 +22,8 @@ from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.orm import Session
 
 from app.core.db import get_db
-from app.models.models import File, PairResult, Run
-from app.schemas.runs import RunCreate, RunOut, SimilarityResultOut
+from app.models.models import File, MatchEvidence, PairResult, Run
+from app.schemas.runs import MatchEvidenceOut, RunCreate, RunOut, SimilarityResultOut
 from app.tasks import run_pipeline
 
 router = APIRouter(prefix="/api/runs", tags=["runs"])
@@ -145,3 +145,28 @@ def get_run_results(run_id: UUID, db: Session = Depends(get_db)):
 
     # return api response
     return build_result_rows(pairs, file_map)
+
+
+@router.get("/{run_id}/results/{pair_id}/evidence", response_model=List[MatchEvidenceOut])
+def get_pair_evidence(run_id: UUID, pair_id: UUID, db: Session = Depends(get_db)):
+    """Return saved evidence rows for one result pair."""
+    run = db.query(Run).filter(Run.id == run_id).first()
+    if not run:
+        raise HTTPException(status_code=404, detail="Run not found")
+
+    pair = db.query(PairResult).filter(PairResult.id == pair_id, PairResult.run_id == run_id).first()
+    if not pair:
+        raise HTTPException(status_code=404, detail="Pair result not found")
+
+    evidence_rows = (
+        db.query(MatchEvidence)
+        .filter(
+            MatchEvidence.run_id == run_id,
+            MatchEvidence.file_a_id == pair.file_a_id,
+            MatchEvidence.file_b_id == pair.file_b_id,
+            MatchEvidence.kind == "AST",
+        )
+        .order_by(MatchEvidence.kind.asc(), MatchEvidence.weight.desc(), MatchEvidence.created_at.asc())
+        .all()
+    )
+    return evidence_rows

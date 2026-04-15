@@ -75,3 +75,36 @@ def test_similarity_evidence_contains_match_locations_for_both_files():
     loc_b = sample["locations_b"][0]
     assert loc_a["start_byte"] <= loc_a["end_byte"]
     assert loc_b["start_byte"] <= loc_b["end_byte"]
+
+
+def test_similarity_evidence_avoids_file_wide_root_spans_when_more_local_matches_exist():
+    code_a = (
+        "class Rectangle:\n"
+        "    def __init__(self, length, width):\n"
+        "        self.length = length\n"
+        "        self.width = width\n"
+        "    def find_area(self):\n"
+        "        area = self.length * self.width\n"
+        "        return area\n"
+    )
+    code_b = (
+        "class Student:\n"
+        "    def __init__(self, name, student_id):\n"
+        "        self.name = name\n"
+        "        self.student_id = student_id\n"
+        "    def display(self):\n"
+        "        print(self.name)\n"
+    )
+
+    h_a = _build_handoff(code_a, "python", "studentA/a.py")
+    h_b = _build_handoff(code_b, "python", "studentB/b.py")
+    result = compare_feature_handoffs(h_a, h_b, n=3)
+
+    assert len(result["evidence"]) > 0
+    file_size_a = max(item["end_byte"] for item in h_a["token_spans"])
+    file_size_b = max(item["end_byte"] for item in h_b["token_spans"])
+
+    for item in result["evidence"]:
+        assert all(not token.startswith("ROOT>") for token in item["ngram"])
+        assert all(loc["span_length"] < file_size_a for loc in item["locations_a"])
+        assert all(loc["span_length"] < file_size_b for loc in item["locations_b"])
