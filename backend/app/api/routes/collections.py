@@ -18,6 +18,7 @@ import uuid
 # zipfile and io are for handling the uploaded zip files,
 import zipfile
 import io
+import hashlib
 # time to get the current timestamp
 import time
 import os
@@ -26,6 +27,8 @@ import os
 from app.core.db import get_db
 # these are like tables classes. each one of this classes maps to a table in postgreSQL
 from app.models.models import Collection, Dataset, Submission, File as FileModel
+from app.pipeline.ast.run_stage import infer_language_from_path
+from app.pipeline.upload.zip_utils import group_zip_files
 # the schemas are used to shape the data going in and out of API
 from app.schemas.collections import CollectionCreate, CollectionOut
 
@@ -43,18 +46,6 @@ def get_or_404(db: Session, collection_id: uuid.UUID) -> Collection:
     if not obj:
         raise HTTPException(status_code=404, detail="Collection not found")
     return obj
-
-# this is a helper function it reads all the file paths in a ZIP and groups them by the first folder name. the result is a dictionary which helps with runtime.time complexity when we want to save the files in the database. it is based on the assumption that each student upload a folder with their name and all their files are in that folder. if there is no folder it will be grouped under "root"
-def group_zip_files(names: list[str]) -> dict[str, list[str]]:
-    """Group zip entry paths by top-level folder (one folder = one student)."""
-    groups: dict[str, list[str]] = {}
-    for path in names:
-        if path.endswith('/'):
-            continue
-        student = path.split('/')[0] if '/' in path else "root"
-        groups.setdefault(student, []).append(path)
-    return groups
-
 # this is also a helper function it takes the grouped files and saves them to the database note not the zip files but the files in the zip files
 def save_zip_to_db(db: Session, dataset_id: uuid.UUID, z: zipfile.ZipFile) -> None:
     """Create Submission + File rows from an open ZIP."""
@@ -66,9 +57,10 @@ def save_zip_to_db(db: Session, dataset_id: uuid.UUID, z: zipfile.ZipFile) -> No
         for fpath in paths:
             data = z.read(fpath)
             rel = fpath if student == "root" else '/'.join(fpath.split('/')[1:])
+            language = infer_language_from_path(rel) or ""
             db.add(FileModel(
-                submission_id=sub.id, path=rel, language="",
-                size_bytes=len(data), content_hash="",
+                submission_id=sub.id, path=rel, language=language,
+                size_bytes=len(data), content_hash=hashlib.sha256(data).hexdigest(),
                 storage_key=fpath, content=data,
             ))
         db.commit()

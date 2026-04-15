@@ -8,8 +8,6 @@
 # tasks.py is the worker that actually perform the analysis
 
 
-# Bottom line: The system structure is in place, but the actual similarity analysis (token + AST) hasn't been implemented yet.
-import random
 import time
 import os
 from datetime import datetime
@@ -19,7 +17,10 @@ from sqlalchemy.orm import Session
 
 from app.celery import celery_app
 from app.core.db import SessionLocal
-from app.models.models import File, PairResult, Run, Submission
+from app.models.models import CandidatePair, File, FileFingerprint, MatchEvidence, PairResult, Run, Submission
+from app.pipeline.ast.run_stage import compare_prepared_files, prepare_ast_file
+from app.pipeline.token.run_stage import compare_prepared_token_files, prepare_token_file, serialize_fingerprints
+from similarity.thresholds import K_GRAM_SIZE
 
 
 ANALYSIS_STAGE_DELAY_SECONDS = float(os.getenv("ANALYSIS_STAGE_DELAY_SECONDS", "1"))
@@ -82,24 +83,183 @@ def get_run_files(db: Session, run_id: str) -> list[File]:
         .all()
     )
 
-#The overall pipeline is implemented and working (run tracking, stages, database writes).
-#However, the core analysis logic is still incomplete.
-#The token analysis stage is currently just a placeholder.
-#The AST (Abstract Syntax Tree) analysis stage is also a placeholder.
-#The final scoring is not meaningful yet—it uses random placeholder values.
+
+def get_pair_result_map(db: Session, run_id: str) -> dict[tuple[str, str], PairResult]:
+    rows = db.query(PairResult).filter(PairResult.run_id == run_id).all()
+    return {(str(row.file_a_id), str(row.file_b_id)): row for row in rows}
+
+
+def get_candidate_pair_keys(db: Session, run_id: str) -> set[tuple[str, str]]:
+    rows = db.query(CandidatePair).filter(CandidatePair.run_id == run_id).all()
+    return {(str(row.file_a_id), str(row.file_b_id)) for row in rows}
+
+
+def blended_final_score(fingerprint_score: float, ast_score: float) -> float:
+    if ast_score > 0:
+        return round(ast_score, 6)
+    return round(fingerprint_score, 6)
+
 
 def run_token_stage(db: Session, run_id: str) -> None:
-    # placeholder token stage
     update_run(db, run_id, stage="TOKENS", progress_pct=30)
-    analysis_stage_delay()
+    files = get_run_files(db, run_id)
+    prepared_files = []
+    fingerprint_rows: list[FileFingerprint] = []
+
+    for file_row in files:
+        prepared = prepare_token_file(
+            file_id=file_row.id,
+            path=file_row.path,
+            content=file_row.content,
+            language=file_row.language,
+            k=K_GRAM_SIZE,
+        )
+        if prepared is None:
+            continue
+
+        prepared_files.append(prepared)
+        fingerprint_rows.append(
+            FileFingerprint(
+                run_id=run_id,
+                file_id=file_row.id,
+                k=K_GRAM_SIZE,
+                w=K_GRAM_SIZE,
+                algo_version="token-jaccard-v1",
+                fingerprint_blob=serialize_fingerprints(prepared.fingerprints),
+                fingerprint_count=len(prepared.fingerprints),
+            )
+        )
+
+    if fingerprint_rows:
+        db.add_all(fingerprint_rows)
+        db.commit()
+
     update_run(db, run_id, stage="TOKENS", progress_pct=50)
+    comparisons = compare_prepared_token_files(prepared_files, k=K_GRAM_SIZE)
+    pair_map = get_pair_result_map(db, run_id)
+    candidate_rows: list[CandidatePair] = []
+    evidence_rows: list[MatchEvidence] = []
+
+    for comparison in comparisons:
+        file_a_id = comparison["file_a_id"]
+        file_b_id = comparison["file_b_id"]
+        pair_key = (str(file_a_id), str(file_b_id))
+        score = round(comparison["fingerprint_score"], 6)
+
+        candidate_rows.append(
+            CandidatePair(
+                run_id=run_id,
+                file_a_id=file_a_id,
+                file_b_id=file_b_id,
+                overlap_count=comparison["overlap_count"],
+                fingerprint_score=score,
+            )
+        )
+
+        existing = pair_map.get(pair_key)
+        if existing is None:
+            existing = PairResult(
+                run_id=run_id,
+                file_a_id=file_a_id,
+                file_b_id=file_b_id,
+                final_score=blended_final_score(score, 0.0),
+                fingerprint_score=score,
+                ast_score=0.0,
+            )
+            db.add(existing)
+            pair_map[pair_key] = existing
+        else:
+            existing.fingerprint_score = score
+            existing.final_score = blended_final_score(score, existing.ast_score)
+
+        for evidence in comparison["evidence"]:
+            for loc_a, loc_b in zip(evidence["locations_a"], evidence["locations_b"]):
+                evidence_rows.append(
+                    MatchEvidence(
+                        run_id=run_id,
+                        file_a_id=file_a_id,
+                        file_b_id=file_b_id,
+                        a_start=loc_a,
+                        a_end=loc_a + K_GRAM_SIZE,
+                        b_start=loc_b,
+                        b_end=loc_b + K_GRAM_SIZE,
+                        kind="TOKEN",
+                        weight=float(evidence["support_count"]),
+                    )
+                )
+
+    if candidate_rows:
+        db.add_all(candidate_rows)
+    if evidence_rows:
+        db.add_all(evidence_rows)
+    if candidate_rows or evidence_rows or comparisons:
+        db.commit()
+
     analysis_stage_delay()
 
 
 def run_ast_stage(db: Session, run_id: str) -> None:
-    # placeholder ast stage
     update_run(db, run_id, stage="AST", progress_pct=55)
-    analysis_stage_delay()
+
+    files = get_run_files(db, run_id)
+    prepared_files = []
+    for file_row in files:
+        prepared = prepare_ast_file(
+            file_id=str(file_row.id),
+            path=file_row.path,
+            content=file_row.content,
+            language=file_row.language,
+        )
+        if prepared is not None:
+            prepared_files.append(prepared)
+
+    candidate_pair_keys = get_candidate_pair_keys(db, run_id)
+    comparisons = compare_prepared_files(
+        prepared_files,
+        n=3,
+        candidate_pairs=candidate_pair_keys if candidate_pair_keys else None,
+    )
+    pair_map = get_pair_result_map(db, run_id)
+    evidence_rows: list[MatchEvidence] = []
+    for comparison in comparisons:
+        pair_key = (str(comparison["file_a_id"]), str(comparison["file_b_id"]))
+        ast_score = round(comparison["ast_score"], 6)
+        existing = pair_map.get(pair_key)
+        if existing is None:
+            existing = PairResult(
+                run_id=run_id,
+                file_a_id=comparison["file_a_id"],
+                file_b_id=comparison["file_b_id"],
+                fingerprint_score=0.0,
+                ast_score=0.0,
+            )
+            db.add(existing)
+            pair_map[pair_key] = existing
+
+        existing.ast_score = ast_score
+        existing.final_score = blended_final_score(existing.fingerprint_score, ast_score)
+
+        for evidence in comparison["evidence"]:
+            for loc_a, loc_b in zip(evidence["locations_a"], evidence["locations_b"]):
+                evidence_rows.append(
+                    MatchEvidence(
+                        run_id=run_id,
+                        file_a_id=comparison["file_a_id"],
+                        file_b_id=comparison["file_b_id"],
+                        a_start=loc_a["start_byte"],
+                        a_end=loc_a["end_byte"],
+                        b_start=loc_b["start_byte"],
+                        b_end=loc_b["end_byte"],
+                        kind="AST",
+                        weight=float(evidence["support_count"]),
+                    )
+                )
+
+    if evidence_rows:
+        db.add_all(evidence_rows)
+    if evidence_rows or comparisons:
+        db.commit()
+
     update_run(db, run_id, stage="AST", progress_pct=75)
     analysis_stage_delay()
 
@@ -108,40 +268,6 @@ def get_existing_pairs(db: Session, run_id: str) -> set[tuple[str, str]]:
     # load pair keys
     pairs = db.query(PairResult).filter(PairResult.run_id == run_id).all()
     return {(str(pair.file_a_id), str(pair.file_b_id)) for pair in pairs}
-
-#The overall pipeline is implemented and working (run tracking, stages, database writes).
-#However, the core analysis logic is still incomplete.
-#The token analysis stage is currently just a placeholder.
-#The AST (Abstract Syntax Tree) analysis stage is also a placeholder.
-#The final scoring is not meaningful yet—it uses random placeholder values.
-
-def build_placeholder_results(
-    run_id: str,
-    files: list[File],
-    existing_pairs: set[tuple[str, str]],
-) -> list[PairResult]:
-    # build one row per file pair
-    rows: list[PairResult] = []
-    for index, file_a in enumerate(files):
-        for file_b in files[index + 1 :]:
-            pair_key = (str(file_a.id), str(file_b.id))
-            if pair_key in existing_pairs:
-                continue
-
-            # placeholder score
-            score = round(random.uniform(0.05, 0.99), 3)
-            rows.append(
-                PairResult(
-                    run_id=run_id,
-                    file_a_id=file_a.id,
-                    file_b_id=file_b.id,
-                    final_score=score,
-                    fingerprint_score=score,
-                    ast_score=score,
-                )
-            )
-    return rows
-
 
 def save_results(db: Session, rows: list[PairResult]) -> None:
     # save new rows
@@ -155,7 +281,7 @@ def save_results(db: Session, rows: list[PairResult]) -> None:
 def run_pipeline(run_id: str) -> None:
     """
     Run stages: INGEST -> TOKENS -> AST -> REPORT.
-    TOKENS and AST are placeholders for now.
+    TOKENS is still a placeholder. AST now runs real parsing/comparison.
     """
     db = open_db()
 
@@ -171,7 +297,6 @@ def run_pipeline(run_id: str) -> None:
         )
 
         # ingest files
-        files = get_run_files(db, run_id)
         update_run(db, run_id, stage="INGEST", progress_pct=10)
         update_run(db, run_id, stage="INGEST", progress_pct=25)
 
@@ -181,9 +306,6 @@ def run_pipeline(run_id: str) -> None:
 
         # build report
         update_run(db, run_id, stage="REPORT", progress_pct=80)
-        existing_pairs = get_existing_pairs(db, run_id)
-        rows = build_placeholder_results(run_id, files, existing_pairs)
-        save_results(db, rows)
         update_run(db, run_id, stage="REPORT", progress_pct=95)
 
         # finish run
@@ -207,4 +329,3 @@ def run_pipeline(run_id: str) -> None:
         raise
     finally:
         db.close()
-

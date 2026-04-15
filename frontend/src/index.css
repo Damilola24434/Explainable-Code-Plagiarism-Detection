@@ -768,6 +768,13 @@ a {
   max-height: 72vh;
 }
 
+.code-highlight {
+  background: #fde68a;
+  color: inherit;
+  padding: 0 0.08rem;
+  border-radius: 0.18rem;
+}
+
 .sim-bar-wrap {
   display: flex;
   flex-direction: column;

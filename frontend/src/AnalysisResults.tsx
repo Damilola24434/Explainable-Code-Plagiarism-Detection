@@ -101,6 +101,8 @@ export default function AnalysisResults({
   if (selectedRow) {
     return (
       <SideBySideComparison
+        runId={runId}
+        pairId={selectedRow.id}
         fileAId={selectedRow.file_a_id}
         fileBId={selectedRow.file_b_id}
         fileAName={selectedRow.file_a}
