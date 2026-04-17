@@ -77,6 +77,11 @@ export async function uploadDatasetZip(collectionId: string, zip: File): Promise
   if (!res.ok) throw new Error("Failed to upload zip");
 }
 
+export async function deleteDataset(datasetId: string): Promise<void> {
+  const res = await fetch(`${API_BASE}/datasets/${datasetId}`, { method: "DELETE" });
+  if (!res.ok) throw new Error("Failed to delete dataset");
+}
+
 // files
 export async function getFiles(datasetId: string): Promise<FileData[]> {
   const res = await fetch(`${API_BASE}/datasets/${datasetId}/files`);

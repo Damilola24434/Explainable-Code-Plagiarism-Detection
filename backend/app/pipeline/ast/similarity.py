@@ -57,7 +57,7 @@ def compare_feature_handoffs(
     handoff_b: Dict[str, Any],
     n: int = 3,
     max_evidence_per_ngram: int = 3,
-    max_evidence_items: int = 15,
+    max_evidence_items: int = 999999,
 ) -> Dict[str, Any]:
     """
     Compare two AST feature handoff payloads using node n-gram Jaccard similarity.

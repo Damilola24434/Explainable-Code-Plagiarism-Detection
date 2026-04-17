@@ -13,8 +13,8 @@ import { getPairEvidence, type MatchEvidence } from "./api/runs";
 
 const API_BASE = "/api";
 const MIN_HIGHLIGHT_SIMILARITY = 0.2;
-const MAX_HIGHLIGHT_EVIDENCE_ROWS = 6;
-const FULL_HIGHLIGHT_SIMILARITY = 0.95;
+const MAX_HIGHLIGHT_EVIDENCE_ROWS = 999999;
+const FULL_HIGHLIGHT_SIMILARITY = 0.2;
 
 interface Props {
   runId: string;

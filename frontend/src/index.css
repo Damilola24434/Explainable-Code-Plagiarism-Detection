@@ -272,6 +272,16 @@ a {
   background: #bbf7d0;
 }
 
+.btn-danger {
+  background: #dc2626;
+  color: #ffffff;
+  border-color: #991b1b;
+}
+
+.btn-danger:hover:not(:disabled) {
+  background: #b91c1c;
+}
+
 .btn-ghost {
   background: transparent;
   color: #166534;

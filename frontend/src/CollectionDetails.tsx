@@ -15,7 +15,7 @@
 
 import { useEffect, useState } from "react";
 import type { Collection, Dataset } from "./api/collections";
-import { getDatasets, uploadDatasetZip } from "./api/collections";
+import { getDatasets, uploadDatasetZip, deleteDataset } from "./api/collections";
 import { createRun, type Run } from "./api/runs";
 import AnalysisResults from "./AnalysisResults";
 import JobProgress from "./JobProgress";
@@ -44,6 +44,8 @@ export default function CollectionDetails({ collection, onBack, onNavChange, sea
   const [activeRun, setActiveRun] = useState<Run | null>(null);
   const [activeDatasetId, setActiveDatasetId] = useState<string | null>(null);
   const [completedRunsByDataset, setCompletedRunsByDataset] = useState<Record<string, Run>>({});
+  const [processingDatasetId, setProcessingDatasetId] = useState<string | null>(null);
+  const [deletingDatasetId, setDeletingDatasetId] = useState<string | null>(null);
 
   const resetZipInput = () => {
     // clear file input value
@@ -67,6 +69,7 @@ export default function CollectionDetails({ collection, onBack, onNavChange, sea
     // show progress view
     setActiveRun(run);
     setActiveDatasetId(datasetId);
+    setProcessingDatasetId(datasetId);
     setShowProgressPage(true);
     setShowResultsPage(false);
   };
@@ -76,6 +79,7 @@ export default function CollectionDetails({ collection, onBack, onNavChange, sea
     if (activeRun && activeDatasetId) {
       setCompletedRunsByDataset((prev) => ({ ...prev, [activeDatasetId]: activeRun }));
     }
+    setProcessingDatasetId(null);
     setShowProgressPage(false);
     setShowResultsPage(true);
   };
@@ -92,19 +96,21 @@ export default function CollectionDetails({ collection, onBack, onNavChange, sea
     refreshDatasets();
   }, [collection]);
 
-  const handleUpload = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!selectedZip || isUploading) return;
+  const performUpload = async (file: File) => {
+    if (!file || isUploading) return;
 
     // start upload
     setIsUploading(true);
     setUploadError(null);
 
     try {
-      await uploadDatasetZip(collection.id, selectedZip);
+      await uploadDatasetZip(collection.id, file);
       setSelectedZip(null);
       resetZipInput();
-      await refreshDatasets();
+      
+      // Refresh datasets
+      const items = await getDatasets(collection.id);
+      setDatasetList(items);
     } catch {
       console.error("upload zip");
       setUploadError("Upload failed. Please check the file and try again.");
@@ -122,6 +128,25 @@ export default function CollectionDetails({ collection, onBack, onNavChange, sea
     } catch {
       console.error("start run");
       setRunError("Failed to start analysis. Please try again.");
+    }
+  };
+
+  const handleDeleteDataset = async (datasetId: string) => {
+    // delete dataset with confirmation
+    if (!window.confirm("Are you sure you want to delete this dataset? This action cannot be undone.")) {
+      return;
+    }
+
+    setDeletingDatasetId(datasetId);
+    try {
+      await deleteDataset(datasetId);
+      setDatasetList((prev) => prev.filter((d) => d.id !== datasetId));
+      setRunError(null);
+    } catch {
+      console.error("delete dataset");
+      setRunError("Failed to delete dataset. Please try again.");
+    } finally {
+      setDeletingDatasetId(null);
     }
   };
 
@@ -206,12 +231,11 @@ export default function CollectionDetails({ collection, onBack, onNavChange, sea
       <div className="page-header workspace-header">
         <div>
           <h2>{collection.name}</h2>
-          <p className="page-subtitle">Upload and analyze submissions</p>
         </div>
       </div>
 
       <section className="flow-section upload-section-compact top-upload-section">
-        <form onSubmit={handleUpload} className="upload-strip">
+        <div className="upload-strip">
           <h3 className="section-title">Upload Dataset</h3>
           <div className="upload-zone upload-inline">
             <input
@@ -220,28 +244,26 @@ export default function CollectionDetails({ collection, onBack, onNavChange, sea
               id="zip-upload"
               style={{ display: "none" }}
               onChange={(e) => {
-                setSelectedZip(e.target.files ? e.target.files[0] : null);
-                setUploadError(null);
+                const file = e.target.files ? e.target.files[0] : null;
+                if (file) {
+                  setSelectedZip(file);
+                  setUploadError(null);
+                  performUpload(file);
+                }
               }}
             />
             <label htmlFor="zip-upload" className="btn btn-secondary file-picker-label">
               Choose File
             </label>
-            <button type="submit" className="btn btn-primary" disabled={!selectedZip || isUploading}>
-              {isUploading ? "Uploading..." : "Upload"}
-            </button>
+            {isUploading && <span className="upload-status">Uploading...</span>}
           </div>
-        </form>
+        </div>
         {selectedZip && <span className="file-name top-file-name">{selectedZip.name}</span>}
         {uploadError && <div className="alert alert-error mt-1">{uploadError}</div>}
       </section>
 
       <section className="flow-section datasets-section-compact">
         <div className="section-header-row">
-          <div>
-            <p className="section-kicker">Datasets</p>
-            <h3 className="section-title">Dataset List</h3>
-          </div>
         </div>
 
         {runError && <div className="alert alert-error">{runError}</div>}
@@ -253,25 +275,58 @@ export default function CollectionDetails({ collection, onBack, onNavChange, sea
           </div>
         ) : (
           <div className="entity-list" aria-label="Datasets">
-            {filteredDatasets.map((d) => (
-              <article key={d.id} className="entity-row entity-row-inline">
-                <div className="entity-main">
-                  <span className="entity-title">{d.name}</span>
-                </div>
-                <span className="entity-date">{new Date(d.created_at).toLocaleDateString()}</span>
-                <div className="entity-actions">
-                  {completedRunsByDataset[d.id] ? (
-                    <button className="btn btn-primary dataset-action-btn" onClick={() => openStoredResults(d.id)}>
-                      View Results
-                    </button>
-                  ) : (
-                    <button className="btn btn-primary dataset-action-btn" onClick={() => runJob(d.id)}>
-                      Run Analysis
-                    </button>
+            {filteredDatasets.map((d) => {
+              const isProcessing = processingDatasetId === d.id;
+              const isCompleted = completedRunsByDataset[d.id];
+              const isDisabled = processingDatasetId !== null && !isProcessing;
+              
+              return (
+                <article key={d.id} className={`entity-row entity-row-inline ${isProcessing ? 'processing' : ''} ${isCompleted ? 'completed' : ''}`}>
+                  {isProcessing && (
+                    <div className="status-indicator processing">
+                      <span className="spinner"></span>
+                    </div>
                   )}
-                </div>
-              </article>
-            ))}
+                  {isCompleted && (
+                    <div className="status-indicator completed">
+                      <span className="checkmark">✓</span>
+                    </div>
+                  )}
+                  <div className="entity-main">
+                    <span className="entity-title">{d.name}</span>
+                    {isProcessing && <span className="status-text">Analyzing...</span>}
+                    {isCompleted && <span className="status-text">Complete</span>}
+                  </div>
+                  <span className="entity-date">{new Date(d.created_at).toLocaleDateString()}</span>
+                  <div className="entity-actions">
+                    {isCompleted ? (
+                      <button className="btn btn-primary dataset-action-btn" onClick={() => openStoredResults(d.id)}>
+                        View Results
+                      </button>
+                    ) : isProcessing ? (
+                      <span className="btn btn-disabled dataset-action-btn">Processing...</span>
+                    ) : (
+                      <button 
+                        className="btn btn-primary dataset-action-btn" 
+                        onClick={() => runJob(d.id)}
+                        disabled={isDisabled}
+                        title={isDisabled ? "Wait for current analysis to finish" : ""}
+                      >
+                        Run Analysis
+                      </button>
+                    )}
+                    <button
+                      className="btn btn-danger dataset-action-btn"
+                      onClick={() => handleDeleteDataset(d.id)}
+                      disabled={deletingDatasetId === d.id || isProcessing}
+                      title={isProcessing ? "Cannot delete while processing" : "Delete this dataset"}
+                    >
+                      {deletingDatasetId === d.id ? "Deleting..." : "Delete"}
+                    </button>
+                  </div>
+                </article>
+              );
+            })}
           </div>
         )}
       </section>
