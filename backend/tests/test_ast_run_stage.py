@@ -6,9 +6,14 @@ from app.pipeline.ast.run_stage import (
 )
 
 
-def test_infer_language_from_path_supports_python_and_java():
+def test_infer_language_from_path_supports_configured_languages():
     assert infer_language_from_path("studentA/main.py") == "python"
     assert infer_language_from_path("studentB/src/Main.java") == "java"
+    assert infer_language_from_path("studentB/src/main.c") == "c"
+    assert infer_language_from_path("studentC/src/main.cpp") == "cpp"
+    assert infer_language_from_path("studentC/include/main.hpp") == "cpp"
+    assert infer_language_from_path("studentD/app.js") == "javascript"
+    assert infer_language_from_path("studentD/component.jsx") == "javascript"
     assert infer_language_from_path("studentC/notes.txt") is None
 
 

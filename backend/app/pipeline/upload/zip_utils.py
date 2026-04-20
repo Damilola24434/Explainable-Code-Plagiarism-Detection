@@ -1,7 +1,22 @@
 from pathlib import PurePosixPath
 
 
-SUPPORTED_UPLOAD_EXTENSIONS = {".py", ".java"}
+SUPPORTED_UPLOAD_EXTENSIONS = {
+    ".py",
+    ".java",
+    ".c",
+    ".cpp",
+    ".cc",
+    ".cxx",
+    ".hpp",
+    ".hh",
+    ".hxx",
+    ".h",
+    ".js",
+    ".jsx",
+    ".mjs",
+    ".cjs",
+}
 
 
 def should_skip_zip_entry(path: str) -> bool:

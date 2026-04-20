@@ -11,6 +11,18 @@ from .similarity import compare_feature_handoffs
 SUPPORTED_LANGUAGE_EXTENSIONS = {
     ".py": "python",
     ".java": "java",
+    ".c": "c",
+    ".cpp": "cpp",
+    ".cc": "cpp",
+    ".cxx": "cpp",
+    ".hpp": "cpp",
+    ".hh": "cpp",
+    ".hxx": "cpp",
+    ".h": "cpp",
+    ".js": "javascript",
+    ".jsx": "javascript",
+    ".mjs": "javascript",
+    ".cjs": "javascript",
 }
 
 
@@ -51,7 +63,7 @@ def prepare_ast_file(
     language: str = "",
 ) -> Optional[ASTPreparedFile]:
     resolved_language = (language or "").strip().lower() or infer_language_from_path(path)
-    if resolved_language not in {"python", "java"}:
+    if resolved_language not in {"python", "java", "c", "cpp", "javascript"}:
         return None
 
     source_code = decode_file_content(content)

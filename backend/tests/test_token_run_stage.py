@@ -19,6 +19,40 @@ def test_prepare_token_file_extracts_tokens_and_fingerprints():
     assert len(prepared.fingerprints) > 0
 
 
+def test_prepare_token_file_supports_c_cpp_and_javascript_extensions():
+    c = prepare_token_file(
+        file_id="c-a",
+        path="studentA/main.c",
+        content=b"int add(int a, int b) { return a + b; }\n",
+        k=3,
+    )
+    cpp = prepare_token_file(
+        file_id="cpp-a",
+        path="studentA/main.cpp",
+        content=b"int add(int a, int b) { return a + b; }\n",
+        k=3,
+    )
+    js = prepare_token_file(
+        file_id="js-a",
+        path="studentB/app.js",
+        content=b"function add(a, b) { return a + b; }\n",
+        k=3,
+    )
+
+    assert c is not None
+    assert c.language == "c"
+    assert "int" in c.tokens
+    assert "IDENT" in c.tokens
+    assert cpp is not None
+    assert cpp.language == "cpp"
+    assert "int" in cpp.tokens
+    assert "IDENT" in cpp.tokens
+    assert js is not None
+    assert js.language == "javascript"
+    assert "function" in js.tokens
+    assert "IDENT" in js.tokens
+
+
 def test_compare_prepared_token_files_ranks_similar_pair_higher():
     file_a = prepare_token_file(
         file_id="file-a",
