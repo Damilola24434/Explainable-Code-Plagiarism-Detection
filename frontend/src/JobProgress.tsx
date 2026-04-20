@@ -28,6 +28,12 @@ const stages = [
 type PollTimerRef = {
   current: ReturnType<typeof setInterval> | null;
 };
+
+type RunWarning = {
+  stage?: string;
+  path?: string;
+  reason?: string;
+};
 // helper to stop polling timer
 function stopTimer(timerRef: PollTimerRef) {
   // stop polling timer
@@ -126,6 +132,9 @@ export default function JobProgress({ runId, onComplete, onCancel }: Props) {
   const isFailed = runData.status === "FAILED";
   const fillClass = isDone ? "done" : isFailed ? "failed" : "";
   const analysisDuration = getAnalysisDuration(runData);
+  const warnings = Array.isArray(runData.config_json?.warnings)
+    ? (runData.config_json.warnings as RunWarning[])
+    : [];
 
   return (
     <section className="flow-section progress-shell">
@@ -152,6 +161,20 @@ export default function JobProgress({ runId, onComplete, onCancel }: Props) {
 
         {runData.error_message && (
           <div className="alert alert-error">{runData.error_message}</div>
+        )}
+        {warnings.length > 0 && (
+          <div className="alert alert-warning">
+            <strong>Analysis warnings</strong>
+            <ul className="compact-list">
+              {warnings.slice(0, 8).map((warning, index) => (
+                <li key={`${warning.path ?? "run"}-${warning.reason ?? index}`}>
+                  {warning.stage ? `${warning.stage}: ` : ""}
+                  {warning.path ? `${warning.path} - ` : ""}
+                  {warning.reason ?? "Warning recorded"}
+                </li>
+              ))}
+            </ul>
+          </div>
         )}
 
         <div>

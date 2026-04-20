@@ -18,7 +18,7 @@ from sqlalchemy.orm import Session
 from app.celery import celery_app
 from app.core.db import SessionLocal
 from app.models.models import CandidatePair, File, FileFingerprint, MatchEvidence, PairResult, Run, Submission
-from app.pipeline.ast.run_stage import compare_prepared_files, prepare_ast_file
+from app.pipeline.ast.run_stage import compare_prepared_files, decode_file_content, prepare_ast_file
 from app.pipeline.token.run_stage import compare_prepared_token_files, prepare_token_file, serialize_fingerprints
 from similarity.thresholds import K_GRAM_SIZE
 
@@ -69,6 +69,18 @@ def update_run(
     db.commit()
 
 
+def append_run_warning(db: Session, run_id: str, warning: dict) -> None:
+    run = db.query(Run).filter(Run.id == run_id).first()
+    if not run:
+        return
+    config = dict(run.config_json or {})
+    warnings = list(config.get("warnings", []))
+    warnings.append(warning)
+    config["warnings"] = warnings
+    run.config_json = config
+    db.commit()
+
+
 def get_run_files(db: Session, run_id: str) -> list[File]:
     # find run
     run = db.query(Run).filter(Run.id == run_id).first()
@@ -115,6 +127,16 @@ def run_token_stage(db: Session, run_id: str) -> None:
             k=K_GRAM_SIZE,
         )
         if prepared is None:
+            reason = "decode failure" if decode_file_content(file_row.content) is None else "unsupported or empty token input"
+            append_run_warning(
+                db,
+                run_id,
+                {
+                    "stage": "TOKENS",
+                    "path": file_row.path,
+                    "reason": reason,
+                },
+            )
             continue
 
         prepared_files.append(prepared)
@@ -212,6 +234,27 @@ def run_ast_stage(db: Session, run_id: str) -> None:
         )
         if prepared is not None:
             prepared_files.append(prepared)
+            if not prepared.handoff.get("parse_ok", False):
+                append_run_warning(
+                    db,
+                    run_id,
+                    {
+                        "stage": "AST",
+                        "path": file_row.path,
+                        "reason": f"syntax issues detected ({prepared.handoff.get('error_count', 0)} parse error indicators)",
+                    },
+                )
+        else:
+            reason = "decode failure" if decode_file_content(file_row.content) is None else "unsupported language or AST preparation failure"
+            append_run_warning(
+                db,
+                run_id,
+                {
+                    "stage": "AST",
+                    "path": file_row.path,
+                    "reason": reason,
+                },
+            )
 
     candidate_pair_keys = get_candidate_pair_keys(db, run_id)
     comparisons = compare_prepared_files(
@@ -219,6 +262,15 @@ def run_ast_stage(db: Session, run_id: str) -> None:
         n=3,
         candidate_pairs=candidate_pair_keys if candidate_pair_keys else None,
     )
+    if not comparisons:
+        append_run_warning(
+            db,
+            run_id,
+            {
+                "stage": "AST",
+                "reason": "No comparable AST file pairs were produced.",
+            },
+        )
     pair_map = get_pair_result_map(db, run_id)
     evidence_rows: list[MatchEvidence] = []
     for comparison in comparisons:
