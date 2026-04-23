@@ -14,7 +14,7 @@
 //  
 
 import { useEffect, useState } from "react";
-import type { Collection, Dataset } from "./api/collections";
+import type { Collection, Dataset, UploadDatasetSummary } from "./api/collections";
 import { getDatasets, uploadDatasetZip, deleteDataset } from "./api/collections";
 import { createRun, getDatasetRunHistory, type Run } from "./api/runs";
 import AnalysisResults from "./AnalysisResults";
@@ -39,6 +39,7 @@ export default function CollectionDetails({ collection, onBack, onNavChange, sea
   const [selectedZip, setSelectedZip] = useState<File | null>(null);
   const [runError, setRunError] = useState<string | null>(null);
   const [uploadError, setUploadError] = useState<string | null>(null);
+  const [uploadSummary, setUploadSummary] = useState<UploadDatasetSummary | null>(null);
   const [showResultsPage, setShowResultsPage] = useState(false);
   const [showProgressPage, setShowProgressPage] = useState(false);
   const [activeRun, setActiveRun] = useState<Run | null>(null);
@@ -118,18 +119,20 @@ export default function CollectionDetails({ collection, onBack, onNavChange, sea
     // start upload
     setIsUploading(true);
     setUploadError(null);
+    setUploadSummary(null);
 
     try {
-      await uploadDatasetZip(collection.id, file);
+      const summary = await uploadDatasetZip(collection.id, file);
+      setUploadSummary(summary);
       setSelectedZip(null);
       resetZipInput();
       
       // Refresh datasets
       const items = await getDatasets(collection.id);
       setDatasetList(items);
-    } catch {
+    } catch (error) {
       console.error("upload zip");
-      setUploadError("Upload failed. Please check the file and try again.");
+      setUploadError(error instanceof Error ? error.message : "Upload failed. Please check the file and try again.");
     } finally {
       setIsUploading(false);
     }
@@ -141,9 +144,9 @@ export default function CollectionDetails({ collection, onBack, onNavChange, sea
       setRunError(null);
       const run = await createRun({ dataset_id: datasetId, config_json: {} });
       openProgressPage(run, datasetId);
-    } catch {
+    } catch (error) {
       console.error("start run");
-      setRunError("Failed to start analysis. Please try again.");
+      setRunError(error instanceof Error ? error.message : "Failed to start analysis. Please try again.");
     }
   };
 
@@ -276,6 +279,39 @@ export default function CollectionDetails({ collection, onBack, onNavChange, sea
         </div>
         {selectedZip && <span className="file-name top-file-name">{selectedZip.name}</span>}
         {uploadError && <div className="alert alert-error mt-1">{uploadError}</div>}
+        {uploadSummary && (
+          <div className="alert alert-success mt-1">
+            <strong>{uploadSummary.message}</strong>
+            <div>
+              Stored {uploadSummary.stored_files} source file(s)
+              {uploadSummary.skipped_files > 0 ? `; skipped ${uploadSummary.skipped_files} unsupported/system file(s)` : ""}.
+            </div>
+            {Object.keys(uploadSummary.language_counts).length > 0 && (
+              <div>
+                Languages: {Object.entries(uploadSummary.language_counts)
+                  .map(([language, count]) => `${language}: ${count}`)
+                  .join(", ")}
+              </div>
+            )}
+            {uploadSummary.warnings.length > 0 && (
+              <ul className="compact-list">
+                {uploadSummary.warnings.map((warning) => (
+                  <li key={warning}>{warning}</li>
+                ))}
+              </ul>
+            )}
+            {uploadSummary.skipped.length > 0 && (
+              <details>
+                <summary>View skipped files</summary>
+                <ul className="compact-list">
+                  {uploadSummary.skipped.slice(0, 10).map((item) => (
+                    <li key={`${item.path}-${item.reason}`}>{item.path}: {item.reason}</li>
+                  ))}
+                </ul>
+              </details>
+            )}
+          </div>
+        )}
       </section>
 
       <section className="flow-section datasets-section-compact">

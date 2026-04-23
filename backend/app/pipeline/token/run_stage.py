@@ -29,6 +29,47 @@ JAVA_KEYWORDS = {
     "void", "while", "true", "false", "null",
 }
 
+CPP_KEYWORDS = {
+    "alignas", "alignof", "and", "and_eq", "asm", "auto", "bitand", "bitor",
+    "bool", "break", "case", "catch", "char", "char8_t", "char16_t", "char32_t",
+    "class", "compl", "concept", "const", "consteval", "constexpr", "constinit",
+    "const_cast", "continue", "co_await", "co_return", "co_yield", "decltype",
+    "default", "delete", "do", "double", "dynamic_cast", "else", "enum", "explicit",
+    "export", "extern", "false", "float", "for", "friend", "goto", "if", "inline",
+    "int", "long", "mutable", "namespace", "new", "noexcept", "not", "not_eq",
+    "nullptr", "operator", "or", "or_eq", "private", "protected", "public", "reflexpr",
+    "register", "reinterpret_cast", "requires", "return", "short", "signed", "sizeof",
+    "static", "static_assert", "static_cast", "struct", "switch", "template", "this",
+    "thread_local", "throw", "true", "try", "typedef", "typeid", "typename", "union",
+    "unsigned", "using", "virtual", "void", "volatile", "wchar_t", "while", "xor",
+    "xor_eq",
+}
+
+C_KEYWORDS = {
+    "auto", "break", "case", "char", "const", "continue", "default", "do",
+    "double", "else", "enum", "extern", "float", "for", "goto", "if", "inline",
+    "int", "long", "register", "restrict", "return", "short", "signed", "sizeof",
+    "static", "struct", "switch", "typedef", "union", "unsigned", "void",
+    "volatile", "while", "_Alignas", "_Alignof", "_Atomic", "_Bool", "_Complex",
+    "_Generic", "_Imaginary", "_Noreturn", "_Static_assert", "_Thread_local",
+}
+
+JAVASCRIPT_KEYWORDS = {
+    "await", "break", "case", "catch", "class", "const", "continue", "debugger",
+    "default", "delete", "do", "else", "export", "extends", "false", "finally",
+    "for", "function", "if", "import", "in", "instanceof", "let", "new", "null",
+    "return", "super", "switch", "this", "throw", "true", "try", "typeof", "undefined",
+    "var", "void", "while", "with", "yield",
+}
+
+LANGUAGE_KEYWORDS = {
+    "python": PYTHON_KEYWORDS,
+    "java": JAVA_KEYWORDS,
+    "c": C_KEYWORDS,
+    "cpp": CPP_KEYWORDS,
+    "javascript": JAVASCRIPT_KEYWORDS,
+}
+
 
 @dataclass(frozen=True)
 class TokenPreparedFile:
@@ -42,7 +83,7 @@ class TokenPreparedFile:
 
 
 def _normalized_tokens(tokens: List[str], language: str) -> List[str]:
-    keywords = PYTHON_KEYWORDS if language == "python" else JAVA_KEYWORDS
+    keywords = LANGUAGE_KEYWORDS.get(language, set())
     normalized: List[str] = []
 
     for token in tokens:
@@ -67,7 +108,7 @@ def prepare_token_file(
     k: int = K_GRAM_SIZE,
 ) -> Optional[TokenPreparedFile]:
     resolved_language = (language or "").strip().lower() or infer_language_from_path(path)
-    if resolved_language not in {"python", "java"}:
+    if resolved_language not in LANGUAGE_KEYWORDS:
         return None
 
     source_code = decode_file_content(content)

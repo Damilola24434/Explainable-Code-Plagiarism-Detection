@@ -51,7 +51,18 @@ async function requestJson<T>(url: string, init?: RequestInit): Promise<T> {
   // call api
   const response = await fetch(url, init);
   if (!response.ok) {
-    throw new Error(`Request failed: ${response.status} ${response.statusText}`);
+    let message = `Request failed: ${response.status} ${response.statusText}`;
+    try {
+      const data = await response.json();
+      if (typeof data.detail === "string") {
+        message = data.detail;
+      } else if (data.detail?.message) {
+        message = data.detail.message;
+      }
+    } catch {
+      // keep default message
+    }
+    throw new Error(message);
   }
 
   // parse json

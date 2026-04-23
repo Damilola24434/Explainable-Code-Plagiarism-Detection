@@ -16,6 +16,7 @@
 import io
 import os
 import threading
+from collections import Counter
 from typing import List
 from uuid import UUID
 
@@ -26,7 +27,7 @@ from reportlab.pdfgen import canvas
 from sqlalchemy.orm import Session
 
 from app.core.db import get_db
-from app.models.models import File, MatchEvidence, PairResult, Run
+from app.models.models import File, MatchEvidence, PairResult, Run, Submission
 from app.schemas.runs import MatchEvidenceOut, RunCreate, RunOut, SimilarityResultOut
 from app.tasks import run_pipeline
 
@@ -92,9 +93,40 @@ def build_result_rows(pairs: List[PairResult], file_map: dict[str, str]) -> List
     return rows
 
 
+def get_dataset_language_counts(db: Session, dataset_id: UUID) -> Counter:
+    files = (
+        db.query(File)
+        .join(Submission, Submission.id == File.submission_id)
+        .filter(Submission.dataset_id == dataset_id)
+        .all()
+    )
+    return Counter(file.language for file in files if file.language)
+
+
+def validate_dataset_can_run(db: Session, dataset_id: UUID) -> None:
+    language_counts = get_dataset_language_counts(db, dataset_id)
+    total_supported = sum(language_counts.values())
+    comparable = {lang: count for lang, count in language_counts.items() if count >= 2}
+
+    if total_supported == 0:
+        raise HTTPException(
+            status_code=400,
+            detail="No supported source files found in this dataset.",
+        )
+    if not comparable:
+        raise HTTPException(
+            status_code=400,
+            detail=(
+                "At least two supported files in the same language are required for comparison. "
+                f"Current language counts: {dict(language_counts)}"
+            ),
+        )
+
+
 @router.post("/", response_model=RunOut, status_code=status.HTTP_201_CREATED)
 def create_run(payload: RunCreate, db: Session = Depends(get_db)):
     """Create a Run record and enqueue a background job."""
+    validate_dataset_can_run(db, payload.dataset_id)
     run = Run(
         dataset_id=payload.dataset_id,
         status="QUEUED",

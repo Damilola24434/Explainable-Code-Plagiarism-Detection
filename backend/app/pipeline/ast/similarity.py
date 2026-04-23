@@ -104,12 +104,11 @@ def compare_feature_handoffs(
             loc for loc in raw_locations_b if _is_useful_evidence_window(ng, loc, file_size=file_size_b)
         ]
 
-        if filtered_locations_a and filtered_locations_b:
-            locations_a = filtered_locations_a
-            locations_b = filtered_locations_b
-        else:
-            locations_a = raw_locations_a
-            locations_b = raw_locations_b
+        if not filtered_locations_a or not filtered_locations_b:
+            continue
+
+        locations_a = filtered_locations_a
+        locations_b = filtered_locations_b
 
         evidence.append(
             {

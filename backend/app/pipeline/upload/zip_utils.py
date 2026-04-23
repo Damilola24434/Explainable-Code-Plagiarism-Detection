@@ -1,26 +1,53 @@
 from pathlib import PurePosixPath
+from typing import Optional
 
 
-SUPPORTED_UPLOAD_EXTENSIONS = {".py", ".java"}
+SUPPORTED_UPLOAD_EXTENSIONS = {
+    ".py",
+    ".java",
+    ".c",
+    ".cpp",
+    ".cc",
+    ".cxx",
+    ".hpp",
+    ".hh",
+    ".hxx",
+    ".h",
+    ".js",
+    ".jsx",
+    ".mjs",
+    ".cjs",
+}
+
+
+def zip_entry_skip_reason(path: str) -> Optional[str]:
+    """Return a user-facing skip reason, or None when the entry is supported."""
+    normalized = (path or "").strip().replace("\\", "/")
+    if not normalized:
+        return "empty path"
+    if normalized.endswith("/"):
+        return "directory"
+
+    parts = [part for part in PurePosixPath(normalized).parts if part not in {"", "."}]
+    if not parts:
+        return "empty path"
+    if "__MACOSX" in parts:
+        return "macOS metadata"
+
+    basename = parts[-1]
+    if basename == ".DS_Store" or basename.startswith("._"):
+        return "system metadata file"
+
+    suffix = PurePosixPath(basename).suffix.lower()
+    if suffix not in SUPPORTED_UPLOAD_EXTENSIONS:
+        return "unsupported file type"
+
+    return None
 
 
 def should_skip_zip_entry(path: str) -> bool:
     """Drop macOS archive metadata and non-source files during upload."""
-    normalized = (path or "").strip().replace("\\", "/")
-    if not normalized or normalized.endswith("/"):
-        return True
-
-    parts = [part for part in PurePosixPath(normalized).parts if part not in {"", "."}]
-    if not parts:
-        return True
-    if "__MACOSX" in parts:
-        return True
-
-    basename = parts[-1]
-    if basename in {".DS_Store"} or basename.startswith("._"):
-        return True
-
-    return PurePosixPath(basename).suffix.lower() not in SUPPORTED_UPLOAD_EXTENSIONS
+    return zip_entry_skip_reason(path) is not None
 
 
 def group_zip_files(names: list[str]) -> dict[str, list[str]]:

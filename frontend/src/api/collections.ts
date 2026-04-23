@@ -26,8 +26,34 @@ export interface FileData {
   storage_key: string;
 }
 
+export interface UploadSkippedFile {
+  path: string;
+  reason: string;
+}
+
+export interface UploadDatasetSummary {
+  message: string;
+  dataset_id: string;
+  stored_files: number;
+  skipped_files: number;
+  skipped: UploadSkippedFile[];
+  language_counts: Record<string, number>;
+  warnings: string[];
+}
+
 const API_BASE = "/api";
 const COLLECTIONS_BASE = `${API_BASE}/collections/`;
+
+async function readErrorMessage(res: Response, fallback: string): Promise<string> {
+  try {
+    const data = await res.json();
+    if (typeof data.detail === "string") return data.detail;
+    if (data.detail?.message) return data.detail.message;
+  } catch {
+    // fall through to fallback
+  }
+  return fallback;
+}
 
 export async function getCollections(): Promise<Collection[]> {
   const res = await fetch(COLLECTIONS_BASE);
@@ -67,14 +93,15 @@ export async function getDatasets(collectionId: string): Promise<Dataset[]> {
   return res.json();
 }
 
-export async function uploadDatasetZip(collectionId: string, zip: File): Promise<void> {
+export async function uploadDatasetZip(collectionId: string, zip: File): Promise<UploadDatasetSummary> {
   const form = new FormData();
   form.append("file", zip);
   const res = await fetch(`${COLLECTIONS_BASE}${collectionId}/upload`, {
     method: "POST",
     body: form,
   });
-  if (!res.ok) throw new Error("Failed to upload zip");
+  if (!res.ok) throw new Error(await readErrorMessage(res, "Failed to upload zip"));
+  return res.json();
 }
 
 export async function deleteDataset(datasetId: string): Promise<void> {

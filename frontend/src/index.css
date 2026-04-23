@@ -772,6 +772,27 @@ a {
   color: #166534;
 }
 
+.alert.alert-success {
+  background: #dcfce7;
+  border-left: 2px solid #16a34a;
+  color: #166534;
+}
+
+.alert.alert-warning {
+  background: #fef3c7;
+  border-left: 2px solid #d97706;
+  color: #92400e;
+}
+
+.compact-list {
+  margin: 0.45rem 0 0;
+  padding-left: 1.1rem;
+}
+
+.compact-list li {
+  margin: 0.18rem 0;
+}
+
 /* This lays out the file upload row. */
 .upload-zone {
   display: flex;
