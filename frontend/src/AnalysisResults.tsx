@@ -9,7 +9,7 @@
 
 
 import { useEffect, useState } from "react";
-import { getRunResults, type SimilarityResult } from "./api/runs";
+import { getRunResults, getRunExportPdfUrl, type SimilarityResult } from "./api/runs";
 import SideBySideComparison from "./SideBySideComparison";
 
 type NavItem = {
@@ -170,6 +170,19 @@ export default function AnalysisResults({
             <option value="similarity">Similarity</option>
             <option value="file_a">File Name</option>
           </select>
+          <button
+  type="button"
+  className="btn btn-secondary"
+  style={{
+    marginLeft: "auto",
+    color: "#050505",
+    backgroundColor: "#fff",
+    borderColor: "#ccc"
+  }}
+  onClick={() => window.open(getRunExportPdfUrl(runId), "_blank")}
+>
+  Download PDF Report
+</button>
         </div>
 
         {resultRows.length === 0 ? (

@@ -1,21 +1,129 @@
+/*
+This file is the main global styling file for the whole application.
+It controls the overall look, colors, layout, and basic components used everywhere
+in the system, not just the landing page. :contentReference[oaicite:0]{index=0}
+
+At the top, we define theme colors using :root. These are variables like:
+--bg, --text, --nav, --hero, etc.
+This makes it easier to keep the design consistent and change colors later
+without editing everything one by one.
+
+Then we reset default browser styles using * selector.
+This removes default margins and paddings and makes layout more predictable.
+
+We also set up the base styles for the whole page:
+- font (Times New Roman)
+- text size and spacing
+- background color
+- smooth font rendering
+
+Next, we style headings like h1, h2, h3, h4 so they all look consistent.
+
+Then we define the main app layout:
+- .app and .app-shell control the main structure
+- .site-nav and .site-nav-inner control the navigation bar at the top
+- .site-title styles the app name
+- .nav-left, nav-center, nav-right control layout of navbar items
+
+We also style navigation elements like:
+- nav links (hover effects, colors)
+- search bar
+- buttons in the navbar
+
+After that, we define reusable button styles:
+- .btn (base style)
+- .btn-primary (main action)
+- .btn-secondary (lighter button)
+- .btn-danger (for delete actions)
+- .btn-ghost (minimal style)
+
+Then we style forms:
+- labels
+- input fields
+- select dropdowns
+- inline form layouts
+- error messages
+
+Next, we handle tables:
+- .data-table for showing results
+- hover effects for clickable rows
+- alignment classes
+This is used for showing datasets, results, etc.
+
+Then we style badges:
+These are the colored labels like HIGH, MEDIUM, LOW risk.
+Each has different colors based on severity.
+
+After that, we define stats cards:
+These show summary numbers like total matches, high risk pairs, etc.
+They are arranged in a grid layout.
+
+We also have progress tracking styles:
+- progress bar
+- stages list
+This is used to show analysis progress.
+
+Then there are alert styles:
+- error messages
+- info messages
+
+Next, we style file upload and dataset sections:
+- upload zone
+- dataset cards
+- collection rows
+
+Then we define layout for tables and lists:
+- centered tables
+- clickable rows
+- dataset and collection info
+
+There are also styles for empty states and loading screens,
+so users see a message when there is no data or when something is loading.
+
+One important part is the code comparison layout:
+- .code-grid shows two files side by side
+- .code-pane shows each file
+- .code-highlight highlights matching parts in yellow
+
+This connects directly to the comparison component logic.
+
+There are also similarity bars and small UI helpers
+to visually show how similar two files are.
+
+At the bottom, we have utility classes like:
+- text-muted
+- margin spacing helpers
+
+Finally, there are responsive styles using @media queries.
+These make sure the app works well on smaller screens like phones:
+- layout becomes single column
+- text sizes adjust
+- spacing is reduced
+
+Overall, this file controls almost all visual parts of the app
+and makes everything look clean, consistent, and user friendly.
+*/
+
 /* This stores the main theme colors. */
+@import url('https://fonts.googleapis.com/css2?family=Tangerine:wght@400;700&display=swap');
+
 :root {
-  --bg: #d9fbe6;
-  --section: #dff7e9;
-  --section-alt: #dcfce7;
-  --line: #d1fae5;
-  --text: #0f172a;
-  --muted: #166534;
-  --nav: #022c22;
-  --hero: #16a34a;
-  --hero-dark: #15803d;
-  --button: #16a34a;
-  --button-hover: #15803d;
+  --bg: #f7f9fc;
+  --section: #eef2f7;
+  --section-alt: #e8ecf3;
+  --line: #d5dce6;
+  --text: #1a2332;
+  --muted: #5a7a99;
+  --nav: #2c5aa0;
+  --hero: #0052cc;
+  --hero-dark: #003d99;
+  --button: #0052cc;
+  --button-hover: #003d99;
   --danger: #b42318;
   --danger-soft: #fce8e6;
   --warning: #9a6700;
   --warning-soft: #fff3cd;
-  --success: #116329;
+  --success: #1a7c3d;
   --success-soft: #d9f2dd;
 }
 
@@ -34,7 +142,7 @@ body,
 }
 
 body {
-  font-family: Arial, "Open Sans", sans-serif;
+  font-family: "Times New Roman", Times, serif;
   font-size: 15px;
   line-height: 1.6;
   color: var(--text);
@@ -46,7 +154,7 @@ h1,
 h2,
 h3,
 h4 {
-  font-family: Arial, "Open Sans", sans-serif;
+  font-family: "Times New Roman", Times, serif;
   color: var(--text);
   line-height: 1.2;
 }
@@ -92,8 +200,12 @@ a {
 
 .site-title {
   color: #ffffff;
-  font-size: 1.1rem;
+  font-family: "Times New Roman", Times, serif;
+  font-size: 1.5rem;
   font-weight: 700;
+  font-style: italic;
+  letter-spacing: 0.5px;
+  text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.1);
 }
 
 .nav-right {
@@ -113,6 +225,34 @@ a {
   padding: 0.15rem 0;
 }
 
+.nav-link:hover {
+  color: #ffffff;
+}
+
+.nav-separator {
+  color: #a8c5e0;
+  margin: 0 0.5rem;
+  font-weight: 300;
+}
+
+.nav-cta {
+  background: var(--button);
+  color: white;
+  padding: 0.5rem 1rem;
+  border-radius: 0.25rem;
+  border: none;
+  font-weight: 600;
+  font-family: "Times New Roman", Times, serif;
+  font-size: 0.85rem;
+  cursor: pointer;
+  transition: background 0.3s ease, transform 0.3s ease;
+}
+
+.nav-cta:hover {
+  background: var(--button-hover);
+  transform: translateY(-1px);
+}
+
 .nav-link:hover,
 .nav-link.active {
   color: #ffffff;
@@ -129,6 +269,68 @@ a {
 
 .nav-search::placeholder {
   color: #166534;
+}
+
+.nav-left {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.brand-link {
+  background: none;
+  border: none;
+  color: inherit;
+  cursor: pointer;
+  padding: 0;
+  font: inherit;
+  transition: opacity 0.3s ease;
+}
+
+.brand-link:hover {
+  opacity: 0.8;
+}
+
+.nav-center {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  flex: 1;
+  justify-content: center;
+}
+
+.crumb-group {
+  display: flex;
+  gap: 0.5rem;
+  align-items: center;
+}
+
+.crumb-link {
+  background: none;
+  border: none;
+  color: inherit;
+  cursor: pointer;
+  padding: 0.15rem 0;
+  font: inherit;
+}
+
+.back-to-landing-btn {
+  background: transparent;
+  border: 1px solid #dcfce7;
+  color: #dcfce7;
+  padding: 0.4rem 0.8rem;
+  border-radius: 0.25rem;
+  font-size: 0.85rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  font-family: "Times New Roman", Times, serif;
+}
+
+.back-to-landing-btn:hover {
+  background: #dcfce7;
+  color: var(--nav);
+  border-color: #dcfce7;
 }
 
 .app-main {

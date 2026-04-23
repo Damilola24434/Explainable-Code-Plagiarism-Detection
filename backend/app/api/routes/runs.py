@@ -13,12 +13,16 @@
 
 
 
+import io
 import os
 import threading
 from typing import List
 from uuid import UUID
 
 from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi.responses import StreamingResponse
+from reportlab.lib.pagesizes import letter
+from reportlab.pdfgen import canvas
 from sqlalchemy.orm import Session
 
 from app.core.db import get_db
@@ -124,6 +128,18 @@ def get_run(run_id: UUID, db: Session = Depends(get_db)):
     return run
 
 
+@router.get("/dataset/{dataset_id}/history", response_model=List[RunOut])
+def get_dataset_run_history(dataset_id: UUID, db: Session = Depends(get_db)):
+    """Return all runs for a dataset, sorted by created_at descending."""
+    runs = (
+        db.query(Run)
+        .filter(Run.dataset_id == dataset_id)
+        .order_by(Run.created_at.desc())
+        .all()
+    )
+    return runs
+
+
 @router.get("/{run_id}/results", response_model=List[SimilarityResultOut])
 def get_run_results(run_id: UUID, db: Session = Depends(get_db)):
     """
@@ -170,3 +186,97 @@ def get_pair_evidence(run_id: UUID, pair_id: UUID, db: Session = Depends(get_db)
         .all()
     )
     return evidence_rows
+
+
+@router.get("/{run_id}/export-pdf")
+def export_run_report_pdf(run_id: UUID, db: Session = Depends(get_db)):
+    """Return a PDF summary report for a completed run."""
+    run = db.query(Run).filter(Run.id == run_id).first()
+    if not run:
+        raise HTTPException(status_code=404, detail="Run not found")
+    if run.status not in ("DONE", "FAILED"):
+        raise HTTPException(status_code=409, detail="Run is not finished yet")
+
+    pairs = db.query(PairResult).filter(PairResult.run_id == run_id).all()
+    file_map = get_file_path_map(db, pairs)
+
+    buffer = io.BytesIO()
+    pdf = canvas.Canvas(buffer, pagesize=letter)
+    width, height = letter
+    margin = 50
+    y = height - margin
+
+    pdf.setFont("Helvetica-Bold", 18)
+    pdf.drawString(margin, y, "Plagiarism Detection Report")
+    y -= 30
+
+    pdf.setFont("Helvetica", 10)
+    pdf.drawString(margin, y, f"Run ID: {run.id}")
+    pdf.drawString(width / 2, y, f"Dataset ID: {run.dataset_id}")
+    y -= 16
+    pdf.drawString(margin, y, f"Status: {run.status}")
+    pdf.drawString(width / 2, y, f"Stage: {run.stage}")
+    y -= 16
+    pdf.drawString(margin, y, f"Created At: {run.created_at}")
+    y -= 30
+
+    total_pairs = len(pairs)
+    high_count = sum(1 for pair in pairs if pair.final_score >= 0.7)
+    medium_count = sum(1 for pair in pairs if 0.4 <= pair.final_score < 0.7)
+    low_count = total_pairs - high_count - medium_count
+
+    pdf.setFont("Helvetica-Bold", 12)
+    pdf.drawString(margin, y, f"Total pairs: {total_pairs}")
+    y -= 18
+    pdf.setFont("Helvetica", 11)
+    pdf.drawString(margin, y, f"High risk: {high_count}")
+    pdf.drawString(width / 2, y, f"Medium risk: {medium_count}")
+    pdf.drawString(width - 150, y, f"Low risk: {low_count}")
+    y -= 30
+
+    if total_pairs == 0:
+        pdf.drawString(margin, y, "No similarity pairs were generated for this run.")
+    else:
+        pdf.setFont("Helvetica-Bold", 12)
+        pdf.drawString(margin, y, "File A")
+        pdf.drawString(margin + 200, y, "File B")
+        pdf.drawString(margin + 400, y, "Similarity")
+        pdf.drawString(margin + 500, y, "Risk")
+        y -= 18
+        pdf.setLineWidth(0.5)
+        pdf.line(margin, y, width - margin, y)
+        y -= 14
+
+        pdf.setFont("Helvetica", 10)
+        for pair in pairs:
+            if y < margin + 40:
+                pdf.showPage()
+                y = height - margin
+                pdf.setFont("Helvetica-Bold", 12)
+                pdf.drawString(margin, y, "File A")
+                pdf.drawString(margin + 200, y, "File B")
+                pdf.drawString(margin + 400, y, "Similarity")
+                pdf.drawString(margin + 500, y, "Risk")
+                y -= 18
+                pdf.line(margin, y, width - margin, y)
+                y -= 14
+                pdf.setFont("Helvetica", 10)
+
+            similarity_pct = f"{pair.final_score * 100:.1f}%"
+            risk_label = get_risk_label(pair.final_score)
+            pdf.drawString(margin, y, file_map.get(str(pair.file_a_id), str(pair.file_a_id)))
+            pdf.drawString(margin + 200, y, file_map.get(str(pair.file_b_id), str(pair.file_b_id)))
+            pdf.drawString(margin + 400, y, similarity_pct)
+            pdf.drawString(margin + 500, y, risk_label)
+            y -= 16
+
+    pdf.showPage()
+    pdf.save()
+    buffer.seek(0)
+
+    filename = f"plagiarism-report-{run.id}.pdf"
+    return StreamingResponse(
+        buffer,
+        media_type="application/pdf",
+        headers={"Content-Disposition": f"attachment; filename={filename}"},
+    )

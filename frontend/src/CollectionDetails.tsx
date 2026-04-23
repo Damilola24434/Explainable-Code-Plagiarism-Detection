@@ -16,7 +16,7 @@
 import { useEffect, useState } from "react";
 import type { Collection, Dataset } from "./api/collections";
 import { getDatasets, uploadDatasetZip, deleteDataset } from "./api/collections";
-import { createRun, type Run } from "./api/runs";
+import { createRun, getDatasetRunHistory, type Run } from "./api/runs";
 import AnalysisResults from "./AnalysisResults";
 import JobProgress from "./JobProgress";
 
@@ -60,6 +60,22 @@ export default function CollectionDetails({ collection, onBack, onNavChange, sea
     try {
       const items = await getDatasets(collection.id);
       setDatasetList(items);
+      
+      // Load run history for each dataset and find the most recent completed run
+      const newCompletedRuns: Record<string, Run> = {};
+      for (const dataset of items) {
+        try {
+          const runs = await getDatasetRunHistory(dataset.id);
+          // Find the most recent DONE run
+          const completedRun = runs.find((run) => run.status === "DONE");
+          if (completedRun) {
+            newCompletedRuns[dataset.id] = completedRun;
+          }
+        } catch (err) {
+          console.error(`Failed to load run history for dataset ${dataset.id}:`, err);
+        }
+      }
+      setCompletedRunsByDataset(newCompletedRuns);
     } catch {
       console.error("load datasets");
     }

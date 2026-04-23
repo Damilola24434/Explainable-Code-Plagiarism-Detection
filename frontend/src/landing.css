@@ -1,0 +1,745 @@
+/*
+This file is the styling for the landing page of our plagiarism detection system.
+Basically, everything you see on the landing page (colors, spacing, layout, fonts, animations)
+is controlled here. :contentReference[oaicite:0]{index=0}
+
+At the top, we import some Google fonts. These are used to make the text look nicer
+and give the page a more clean and styled appearance instead of default fonts.
+
+The .landing-container is like the main wrapper for the whole page. It sets the font,
+text color, background color, and makes sure the page takes up the full height of the screen.
+
+Then we have the navbar styles. This controls how the top navigation bar looks.
+For example:
+- .site-title controls the "Plagiarism Detector" text (font, size, position)
+- .site-nav adds spacing from the left
+- .nav-center and .nav-links control how the navigation buttons are arranged
+- .nav-link styles each button and adds hover effects (like turning green)
+
+After that is the hero section. This is the big top section with the background image.
+It uses a gradient overlay and background image to make it look modern.
+There are also animations like floating circles and fade-in effects to make it more interactive.
+
+The .hero-content controls the text in the middle (title and description),
+and the .btn classes style the buttons like "Get Started" and "Learn More".
+
+Next is the general container class. This just keeps content centered and gives spacing
+on the sides so everything is not stuck to the edges.
+
+Then we have different sections like:
+- .about (explains the system)
+- .how-to-use (step-by-step process)
+- .requirements (what files and system setup is needed)
+- .file-structure (how to name and organize files)
+- .team (shows team members)
+- .acknowledgement (credits people involved)
+
+Each section has its own styles for layout, spacing, colors, and text.
+
+There are also grid systems like:
+- .steps-grid
+- .req-grid
+- .team-grid
+
+These help arrange cards nicely in rows and make them responsive.
+
+For cards (like step-card, req-card, team-card), there are animations added.
+At first, they are hidden (opacity 0 and moved down), and when they appear
+on screen, they become visible and slide up. This connects with the JavaScript
+IntersectionObserver from the other file.
+
+The file also includes styling for images (like team profile pictures),
+making them circular and properly fitted.
+
+At the bottom, there is footer styling. This controls the look of the bottom section
+with the project name and credits.
+
+There is also a responsive section using @media. This makes sure the page looks good
+on smaller screens like phones by adjusting font sizes and layout.
+
+Finally, scroll behavior is set to smooth so when users click navigation links,
+the page scrolls nicely instead of jumping.
+
+Overall, this file is responsible for making the landing page look clean,
+modern, and easy to use. It handles all visual parts but does not control logic.
+*/
+/* ===== LANDING PAGE STYLES ===== */
+/* Uses same navbar and color scheme as main application */
+
+@import url('https://fonts.googleapis.com/css2?family=Tangerine:wght@400;700&display=swap');
+
+
+.landing-container {
+  font-family: "Times New Roman", Times, serif;
+  color: var(--text);
+  line-height: 1.6;
+  background-color: var(--bg);
+  min-height: 100vh;
+}
+
+/* ===== NAVBAR ===== */
+
+.site-title {
+  margin-left: -40px; /* adjust: 8px, 12px, 16px */
+}
+.site-nav {
+  padding-left: 12px;
+}
+@import url('https://fonts.googleapis.com/css2?family=Allura&display=swap');
+
+.site-title {
+  font-family: 'Allura', cursive;
+  font-size: 1.3rem;
+  font-style: italic;
+  color: white;
+}
+
+/* CENTER LINKS */
+.nav-center {
+  flex: 1;
+  display: flex;
+  justify-content: center;
+}
+
+.nav-links {
+  display: flex;
+  gap: 2.2rem; /* clean spacing */
+}
+
+/* LINKS */
+.nav-link {
+  background: none;
+  border: none;
+  color: #e2e8f0;
+  font-size: 1rem;
+  cursor: pointer;
+  padding: 0.2rem 0;
+  transition: color 0.2s ease;
+}
+
+/* HOVER (UNIFIED GREEN) */
+.nav-link:hover {
+  color: #22c55e;
+}
+
+/* ACTIVE */
+.nav-link.active {
+  border-bottom: none;
+}
+
+/* Landing page sections use main app's color scheme */
+.hero {
+  min-height: 80vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  background:
+    linear-gradient(rgba(55, 74, 105, 0.65), rgba(15, 23, 42, 0.8)),
+    url("./assets/hero-bg.png");
+
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
+
+  padding: 2rem;
+}
+.hero {
+  backdrop-filter: blur(10px);
+}
+
+.hero::before {
+  content: "";
+  position: absolute;
+  top: -50%;
+  right: -20%;
+  width: 600px;
+  height: 600px;
+  background: rgba(23, 39, 185, 0.05);
+  border-radius: 50%;
+  animation: float 6s ease-in-out infinite;
+}
+
+.hero::after {
+  content: "";
+  position: absolute;
+  bottom: -30%;
+  left: -10%;
+  width: 400px;
+  height: 400px;
+  background: rgba(241, 240, 240, 0.03);
+  border-radius: 50%;
+  animation: float 8s ease-in-out infinite reverse;
+}
+
+@keyframes float {
+  0%,
+  100% {
+    transform: translateY(0px);
+  }
+  50% {
+    transform: translateY(20px);
+  }
+}
+
+.hero-content {
+  max-width: 800px;
+  text-align: center;
+  color: #ffffff;
+  z-index: 10;
+  position: relative;
+  animation: fadeInUp 0.8s ease;
+}
+
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(30px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.hero h1 {
+  font-family: "Times New Roman", Times, serif;
+  font-size: 4rem;
+  font-weight: 700;
+  margin-bottom: 1rem;
+  line-height: 1.2;
+  letter-spacing: 2px;
+}
+.hero-content h1 {
+  color: #ffffff;
+  font-weight: 700;
+  text-shadow: 0 2px 6px rgba(0, 0, 0, 0.4);
+}
+
+.hero p {
+  font-size: 1.1rem;
+  margin-bottom: 2rem;
+  opacity: 0.95;
+  font-weight: 400;
+  font-family: "Times New Roman", Times, serif;
+}
+
+.hero-buttons {
+  display: flex;
+  gap: 1rem;
+  justify-content: center;
+  flex-wrap: wrap;
+}
+
+.btn {
+  padding: 0.8rem 2rem;
+  border: none;
+  border-radius: 0.3rem;
+  font-size: 1rem;
+  font-family: "Times New Roman", Times, serif;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  text-decoration: none;
+  display: inline-block;
+}
+
+.btn-primary {
+  background: white;
+  color: var(--hero);
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+}
+
+.btn-primary:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 15px 40px rgba(0, 0, 0, 0.3);
+}
+
+.btn-secondary {
+  background: rgba(255, 255, 255, 0.2);
+  color: white;
+  border: 2px solid white;
+}
+
+.btn-secondary:hover {
+  background: rgba(255, 255, 255, 0.3);
+  transform: translateY(-3px);
+}
+
+@media (max-width: 768px) {
+  .hero h1 {
+    font-size: 2.5rem;
+  }
+  .hero p {
+    font-size: 1rem;
+  }
+  .hero-buttons {
+    flex-direction: column;
+  }
+}
+
+/* ===== CONTAINER ===== */
+.container {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 0 2rem;
+}
+
+/* ===== ABOUT SECTION ===== */
+.about {
+  padding: 5rem 2rem;
+  background-color: var(--bg);
+}
+
+.section-header {
+  text-align: center;
+  margin-bottom: 3rem;
+}
+
+.section-header h2 {
+  font-family: "Times New Roman", Times, serif;
+  font-size: 3rem;
+  font-weight: 700;
+  margin-bottom: 1rem;
+  color: var(--nav);
+  letter-spacing: 1px;
+}
+
+.section-header p {
+  font-size: 1rem;
+  color: var(--muted);
+  max-width: 600px;
+  margin: 0 auto;
+  font-family: "Times New Roman", Times, serif;
+}
+
+.about-content {
+  background: var(--section);
+  padding: 3rem;
+  border-radius: 0.3rem;
+  border: 2px solid var(--line);
+}
+
+.about-text {
+  font-size: 1rem;
+  line-height: 1.8;
+  color: var(--text);
+  margin-bottom: 2rem;
+  font-family: "Times New Roman", Times, serif;
+}
+
+.about-features {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+  gap: 1.5rem;
+  margin-top: 2rem;
+}
+
+.feature-item {
+  padding: 1.5rem;
+  background: var(--section-alt);
+  border-radius: 0.3rem;
+  border-left: 4px solid var(--hero);
+  transition: all 0.3s ease;
+  opacity: 0;
+  transform: translateY(20px);
+}
+
+.feature-item.visible {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+
+.feature-item h3 {
+  color: var(--hero);
+  margin-bottom: 0.5rem;
+  font-size: 1.2rem;
+  font-family: "Times New Roman", Times, serif;
+}
+
+.feature-item p {
+  color: var(--text);
+  font-size: 0.95rem;
+  font-family: "Times New Roman", Times, serif;
+}
+
+/* ===== HOW TO USE SECTION ===== */
+.how-to-use {
+  padding: 5rem 2rem;
+  background: var(--section);
+}
+
+.steps-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: 2rem;
+  margin-top: 3rem;
+}
+
+.step-card {
+  background: white;
+  padding: 2rem;
+  border-radius: 0.3rem;
+  border: 2px solid var(--line);
+  text-align: center;
+  transition: all 0.3s ease;
+  position: relative;
+  opacity: 0;
+  transform: translateY(20px);
+}
+
+.step-card.visible {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+.step-card::before {
+  content: attr(data-step);
+  position: absolute;
+  top: -15px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 50px;
+  height: 50px;
+  background: var(--hero);
+  color: white;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 700;
+  font-size: 1.5rem;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+}
+
+
+
+.step-card h3 {
+  margin-top: 1.5rem;
+  margin-bottom: 1rem;
+  font-size: 1.2rem;
+  color: var(--nav);
+  font-family: "Times New Roman", Times, serif;
+}
+
+.step-card p {
+  color: var(--text);
+  line-height: 1.7;
+  font-family: "Times New Roman", Times, serif;
+}
+
+/* ===== REQUIREMENTS SECTION ===== */
+.requirements {
+  padding: 5rem 2rem;
+  background-color: var(--bg);
+}
+
+.req-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+  gap: 2rem;
+  margin-top: 3rem;
+}
+
+.req-card {
+  background: var(--section);
+  padding: 2rem;
+  border-radius: 0.3rem;
+  border: 2px solid var(--line);
+  transition: all 0.3s ease;
+  opacity: 0;
+  transform: translateY(20px);
+}
+
+.req-card.visible {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+
+.req-card h3 {
+  font-size: 1.2rem;
+  color: var(--hero);
+  margin-bottom: 1rem;
+  font-family: "Times New Roman", Times, serif;
+}
+
+.req-card ul {
+  list-style: none;
+  padding: 0;
+}
+
+.req-card li {
+  padding: 0.5rem 0;
+  color: var(--text);
+  display: flex;
+  align-items: center;
+  font-family: "Times New Roman", Times, serif;
+}
+
+.req-card li::before {
+  content: "✓";
+  display: inline-block;
+  width: 24px;
+  height: 24px;
+  background: var(--hero);
+  color: white;
+  border-radius: 50%;
+  text-align: center;
+  line-height: 24px;
+  margin-right: 0.75rem;
+  font-size: 0.75rem;
+  flex-shrink: 0;
+}
+
+/* ===== FILE STRUCTURE SECTION ===== */
+.file-structure {
+  padding: 5rem 2rem;
+  background: var(--section);
+}
+
+.structure-box {
+  background: var(--nav);
+  color: #e8ecf3;
+  padding: 2rem;
+  border-radius: 0.3rem;
+  font-family: "Courier New", monospace;
+  font-size: 0.95rem;
+  line-height: 1.8;
+  overflow-x: auto;
+  margin-top: 2rem;
+  border: 2px solid var(--line);
+}
+
+.structure-box code {
+  color: #e8ecf3;
+}
+
+.structure-explanation {
+  margin-top: 2rem;
+  padding: 2rem;
+  background: var(--section-alt);
+  border-radius: 0.3rem;
+  border-left: 4px solid var(--hero);
+}
+
+.structure-explanation h4 {
+  color: var(--hero);
+  margin-bottom: 1rem;
+  font-family: "Times New Roman", Times, serif;
+}
+
+.structure-explanation p {
+  color: var(--text);
+  margin-bottom: 0.5rem;
+  font-family: "Times New Roman", Times, serif;
+}
+
+.structure-explanation code {
+  background: rgba(22, 163, 74, 0.1);
+  padding: 0.2rem 0.5rem;
+  border-radius: 0.3rem;
+  color: var(--hero);
+  font-family: "Courier New", monospace;
+}
+
+/* ===== TEAM SECTION ===== */
+.team {
+  padding: 5rem 2rem;
+  background-color: var(--bg);
+}
+
+.team-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+  gap: 2rem;
+  margin-top: 3rem;
+}
+
+.team-card {
+  background: white;
+  border: 2px solid var(--line);
+  border-radius: 0.3rem;
+  padding: 2rem;
+  text-align: center;
+  transition: all 0.3s ease;
+  opacity: 0;
+  transform: translateY(20px);
+}
+
+.team-card.visible {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+
+
+.avatar {
+  width: 120px;
+  height: 120px;
+  margin: 0 auto 1.5rem;
+  border-radius: 50%;
+  background: linear-gradient(135deg, var(--hero), var(--hero-dark));
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: white;
+  font-size: 3rem;
+  font-weight: 700;
+}
+.avatar-img {
+  width: 120px;
+  height: 120px;
+  border-radius: 50%;   /* makes it circular */
+  object-fit: cover;    /* keeps image clean */
+  margin: 0 auto 1.5rem;
+  display: block;
+}
+
+.team-card h3 {
+  font-size: 1.2rem;
+  color: var(--nav);
+  margin-bottom: 0.5rem;
+  font-family: "Times New Roman", Times, serif;
+}
+
+.team-card .role {
+  font-size: 0.9rem;
+  color: var(--hero);
+  font-weight: 600;
+  margin-bottom: 1rem;
+  font-family: "Times New Roman", Times, serif;
+}
+
+.team-card p {
+  color: var(--text);
+  line-height: 1.7;
+  font-size: 0.95rem;
+  font-family: "Times New Roman", Times, serif;
+}
+
+/* ===== ACKNOWLEDGEMENT SECTION ===== */
+.acknowledgement {
+  padding: 5rem 2rem;
+  background: var(--section);
+}
+
+.ack-content {
+  max-width: 800px;
+  margin: 0 auto;
+  text-align: center;
+}
+
+.ack-content h3 {
+  font-family: "Times New Roman", Times, serif;
+  font-size: 2.5rem;
+  color: var(--nav);
+  margin-bottom: 1.5rem;
+  letter-spacing: 1px;
+}
+
+.ack-item {
+  background: white;
+  padding: 1.5rem;
+  margin-bottom: 1rem;
+  border-radius: 0.3rem;
+  border-left: 4px solid var(--hero);
+  text-align: left;
+  transition: all 0.3s ease;
+  font-family: "Times New Roman", Times, serif;
+}
+
+
+.ack-item strong {
+  color: var(--hero);
+  font-size: 1.05rem;
+}
+
+.ack-item em {
+  color: var(--muted);
+  font-style: italic;
+}
+.ack-list {
+  list-style: none;        /* removes the dots */
+  padding-left: 0;         /* removes left indent */
+  margin-top: 10px;
+}
+
+.ack-list li {
+  font-family: "Times New Roman", Times, serif;
+  font-size: 0.9rem;       /* smaller text (adjust to 0.85 if needed) */
+  color: #000;
+  margin-bottom: 6px;
+  line-height: 1.5;
+}
+
+.ack-list li strong {
+  color: #000;
+}
+
+/* ===== FOOTER ===== */
+.landing-footer {
+  background: var(--nav);
+  color: var(--section);
+  padding: 3rem 2rem;
+  text-align: center;
+  border-top: 2px solid var(--line);
+}
+
+.footer-content {
+  max-width: 1200px;
+  margin: 0 auto;
+}
+
+.footer-logo {
+  font-family: "Times New Roman", Times, serif;
+  font-size: 2.5rem;
+  font-weight: 700;
+  margin-bottom: 1rem;
+  color: var(--section);
+  letter-spacing: 1px;
+}
+
+.footer-text {
+  color: rgba(217, 251, 230, 0.8);
+  margin-bottom: 1rem;
+  font-size: 1rem;
+  font-family: "Times New Roman", Times, serif;
+}
+
+.footer-credits {
+  border-top: 1px solid rgba(217, 251, 230, 0.3);
+  padding-top: 2rem;
+  margin-top: 2rem;
+  color: rgba(217, 251, 230, 0.6);
+  font-size: 0.9rem;
+  font-family: "Times New Roman", Times, serif;
+}
+
+/* ===== RESPONSIVE ===== */
+@media (max-width: 768px) {
+  .section-header h2 {
+    font-size: 2rem;
+  }
+
+  .about-content,
+  .structure-explanation {
+    padding: 1.5rem;
+  }
+
+  .nav-links {
+    gap: 1rem;
+  }
+
+  .steps-grid,
+  .req-grid,
+  .team-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* ===== SCROLL SMOOTH ===== */
+html {
+  scroll-behavior: smooth;
+}

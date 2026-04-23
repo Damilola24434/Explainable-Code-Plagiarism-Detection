@@ -78,9 +78,18 @@ export async function getRun(runId: string): Promise<Run> {
   return requestJson<Run>(`${API_BASE}/runs/${runId}`);
 }
 
+export async function getDatasetRunHistory(datasetId: string): Promise<Run[]> {
+  // fetch all completed runs for a dataset
+  return requestJson<Run[]>(`${API_BASE}/runs/dataset/${datasetId}/history`);
+}
+
 export async function getRunResults(runId: string): Promise<SimilarityResult[]> {
   // fetch run results
   return requestJson<SimilarityResult[]>(`${API_BASE}/runs/${runId}/results`);
+}
+
+export function getRunExportPdfUrl(runId: string): string {
+  return `${API_BASE}/runs/${runId}/export-pdf`;
 }
 
 export async function getPairEvidence(runId: string, pairId: string): Promise<MatchEvidence[]> {

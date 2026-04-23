@@ -8,6 +8,110 @@
 // this is a maual review page where professor can inspaecr files sisde by side that have high similarity score 
 // and decide if the similarity looks like it was copied rom a sourece
 
+/*
+This file is responsible for showing two code files side by side so that 
+a professor (or user) can manually compare them and check for possible plagiarism. :contentReference[oaicite:0]{index=0}
+
+The main idea of this file is not to detect plagiarism itself, but to help 
+visually inspect the results after the system already calculated similarity.
+
+At the top, we import things like useState and useEffect for managing data,
+and also a function called getPairEvidence which gives us the matching parts 
+between two files.
+
+There are also some constants like:
+- MIN_HIGHLIGHT_SIMILARITY
+- FULL_HIGHLIGHT_SIMILARITY
+
+These are used to decide when to highlight code and how much to highlight.
+
+Then we define the Props interface. This tells us what data this component needs,
+like:
+- runId and pairId (to identify the comparison)
+- fileA and fileB info (ids and names)
+- similarity score
+- dataset name (optional)
+- onBack function (to go back to results page)
+
+Next, we have helper functions.
+
+getRiskLabel:
+This takes the similarity score and converts it into a risk level:
+- HIGH if very similar
+- MEDIUM if somewhat similar
+- LOW if not very similar
+
+getRiskBadge:
+This maps the risk level to a CSS class so we can style it with colors.
+
+fetchFileText:
+This function loads the actual content of a file from the backend API.
+
+byteOffsetToStringIndex:
+This is used to convert byte positions into string positions.
+It is important because the evidence data comes in byte offsets,
+but JavaScript works with string indexes.
+
+normalizeRanges:
+This cleans up overlapping highlight ranges so they don’t conflict
+and merges them into clean sections.
+
+renderHighlightedCode:
+This is a very important function. It takes the file text and the ranges,
+then highlights the matching parts using <mark>. Everything else stays normal.
+So this is what makes the yellow highlighted code appear.
+
+selectVisibleEvidenceRows:
+This decides how much evidence to show depending on similarity.
+- If similarity is low → no highlights
+- If high → show everything
+- Otherwise → show limited important parts
+
+Then we have the main component: SideBySideComparison.
+
+Inside it, we use state to store:
+- leftText (file A content)
+- rightText (file B content)
+- evidence (matching parts)
+- loadError (if something fails)
+
+There is a function called loadFiles which:
+- fetches both file contents
+- fetches evidence data
+- stores everything in state
+- handles errors if something goes wrong
+
+useEffect is used so that every time the file ids or run id changes,
+the files reload automatically.
+
+After that, we calculate:
+- risk level
+- badge style
+- visible evidence
+- highlight ranges for left and right files
+
+Then comes the UI (return part):
+
+At the top:
+- A header showing "Manual Review"
+- A title "File Comparison"
+- A short explanation depending on similarity
+- A badge showing risk level and percentage
+
+Then:
+- If there is an error → show error message
+- If still loading → show loading message
+- If everything is ready → show two code panels side by side
+
+Each panel shows:
+- file name at the top
+- code content with highlighted matching parts
+
+Overall, this file is used for manual plagiarism review.
+It helps the professor clearly see which parts of two files are similar
+and decide if it looks like copying or not.
+*/
+
 import { useState, useEffect, type ReactNode } from "react";
 import { getPairEvidence, type MatchEvidence } from "./api/runs";
 
@@ -203,7 +307,7 @@ export default function SideBySideComparison({
           {risk} - {(similarity * 100).toFixed(1)}% similar
         </span>
       </div>
-      <button type="button" className="secondary-button" onClick={onBack}>
+      <button type="button" className="btn btn-secondary btn-sm" onClick={onBack}>
         Back to Results
       </button>
 
