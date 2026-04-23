@@ -80,7 +80,7 @@ modern, and easy to use. It handles all visual parts but does not control logic.
 /* ===== NAVBAR ===== */
 
 .site-title {
-  margin-left: -40px; /* adjust: 8px, 12px, 16px */
+  margin-left: -80px; /* adjust: 8px, 12px, 16px */
 }
 .site-nav {
   padding-left: 12px;

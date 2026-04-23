@@ -307,9 +307,14 @@ export default function SideBySideComparison({
           {risk} - {(similarity * 100).toFixed(1)}% similar
         </span>
       </div>
-      <button type="button" className="btn btn-secondary btn-sm" onClick={onBack}>
-        Back to Results
-      </button>
+      <button
+  type="button"
+  className="btn btn-secondary btn-sm"
+  style={{ color: "#000" }}
+ 
+>
+
+</button>
 
       {loadError ? (
         <div className="flow-section">

@@ -1,10 +1,3 @@
-// about the main app component
-// this is the root react component that acts like a page router for this program.
-// it uses browser History API to sync app state with browser navigation
-// when user clicks a collection, it pushes state to history with collection id
-// when user clicks back button, popstate event restores the previous state
-// this way back/forward buttons work within the app instead of leaving it
-
 import { useEffect, useState } from "react";
 import Collections from "./Collections";
 import CollectionDetails from "./CollectionDetails";
@@ -33,11 +26,60 @@ export default function App() {
   const [searchQuery, setSearchQuery] = useState("");
   const [navItems, setNavItems] = useState<NavItem[]>([{ label: "Collections", active: true }]);
 
-  // Handle browser back/forward buttons
+  // ✅ Restore state on refresh
+  useEffect(() => {
+    const state = window.history.state as (AppState & { page?: string; view?: string }) | null;
+
+    if (!state) {
+      setShowLanding(true);
+      window.history.replaceState({ page: "landing" }, "", window.location.pathname);
+      return;
+    }
+
+    if (state.view) {
+      setShowLanding(false);
+
+      if (state.selectedCollection) {
+        setSelectedCollection(state.selectedCollection);
+        setNavItems([
+          { label: "Collections", onClick: () => showCollections(), active: false },
+          { label: state.selectedCollection.name, active: true },
+        ]);
+      } else {
+        setSelectedCollection(null);
+        setNavItems([{ label: "Collections", active: true }]);
+      }
+
+      return;
+    }
+
+    if (state.page === "landing") {
+      setShowLanding(true);
+      return;
+    }
+
+    if (state.selectedCollection) {
+      setShowLanding(false);
+      setSelectedCollection(state.selectedCollection);
+      setNavItems([
+        { label: "Collections", onClick: () => showCollections(), active: false },
+        { label: state.selectedCollection.name, active: true },
+      ]);
+      return;
+    }
+
+    setShowLanding(false);
+    setSelectedCollection(null);
+    setNavItems([{ label: "Collections", active: true }]);
+  }, []);
+
+  // ✅ Handle browser back/forward
   useEffect(() => {
     const handlePopState = (event: PopStateEvent) => {
-      const state = event.state as (AppState & { page?: string }) | null;
-      
+      const state = event.state as (AppState & { page?: string; view?: string }) | null;
+
+      if (state?.view) return;
+
       if (state?.page === "landing") {
         setShowLanding(true);
       } else if (state?.selectedCollection) {
@@ -62,8 +104,14 @@ export default function App() {
     e?.preventDefault();
     setSelectedCollection(null);
     setNavItems([{ label: "Collections", active: true }]);
-    // Push history state for collections view
-    window.history.pushState({ selectedCollection: null }, "", "/");
+
+    const currentState = window.history.state as { selectedCollection?: unknown } | null;
+
+    if (currentState?.selectedCollection === null) {
+      window.history.replaceState({ selectedCollection: null }, "", "/");
+    } else {
+      window.history.pushState({ selectedCollection: null }, "", "/");
+    }
   };
 
   const handleGetStarted = () => {
@@ -84,15 +132,17 @@ export default function App() {
       { label: "Collections", onClick: showCollections, active: false },
       { label: collection.name, active: true },
     ]);
-    // Push history state for collection detail view
-    window.history.pushState({ selectedCollection: collection }, "", `/collection/${collection.id}`);
+
+    window.history.pushState(
+      { selectedCollection: collection },
+      "",
+      `/collection/${collection.id}`
+    );
   };
 
+  // 🔥 FIXED: BACK BUTTON (NO MORE DOUBLE CLICK ISSUE)
   const handleBackFromDetails = () => {
-    setSelectedCollection(null);
-    setNavItems([{ label: "Collections", active: true }]);
-    // Use browser back instead of manual state change
-    window.history.back();
+    window.history.back(); // ✅ correct
   };
 
   return showLanding ? (
@@ -105,19 +155,25 @@ export default function App() {
             <button type="button" className="site-title brand-link" onClick={showCollections}>
               Plagiarism Detector
             </button>
-            <button 
-              type="button" 
+
+            <button
+              type="button"
               className="back-to-landing-btn"
               onClick={handleBackToLanding}
               title="Back to Home"
             >
-              ← Home
+              Home
             </button>
           </div>
 
           <nav className="nav-center" aria-label="Page navigation">
             {navItems.map((item, index) => (
               <span key={`${item.label}-${index}`} className="crumb-group">
+                {index > 0 && (
+                  <span style={{ color: "#a8c5e0", margin: "0 0.25rem" }}>
+                    ›
+                  </span>
+                )}
                 {item.onClick ? (
                   <button
                     type="button"
@@ -140,13 +196,13 @@ export default function App() {
               type="search"
               className="nav-search"
               placeholder={selectedCollection ? "Search datasets" : "Search collections"}
-              aria-label={selectedCollection ? "Search datasets" : "Search collections"}
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
             />
           </div>
         </div>
       </header>
+
       <main className="app-main">
         {selectedCollection ? (
           <CollectionDetails
