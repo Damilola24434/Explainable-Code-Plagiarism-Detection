@@ -1,3 +1,5 @@
+import pytest
+
 from app.pipeline.ast.parser import parse_and_collect
 
 def assert_spans_valid(code: str, nodes):
@@ -28,6 +30,36 @@ def test_java_simple_class_parses():
     assert result["include_unnamed_nodes"] is True
     assert len(result["nodes"]) > 0
     assert "tree" not in result
+    assert_spans_valid(code, result["nodes"])
+
+def test_c_simple_function_parses_when_grammar_installed():
+    pytest.importorskip("tree_sitter_c")
+    code = "int add(int a, int b) { return a + b; }\n"
+    result = parse_and_collect(code, "c")
+    assert result["language"] == "c"
+    assert result["root_type"] == "translation_unit"
+    assert result["error_count"] == 0
+    assert len(result["nodes"]) > 0
+    assert_spans_valid(code, result["nodes"])
+
+def test_cpp_simple_function_parses_when_grammar_installed():
+    pytest.importorskip("tree_sitter_cpp")
+    code = "int add(int a, int b) { return a + b; }\n"
+    result = parse_and_collect(code, "cpp")
+    assert result["language"] == "cpp"
+    assert result["root_type"] == "translation_unit"
+    assert result["error_count"] == 0
+    assert len(result["nodes"]) > 0
+    assert_spans_valid(code, result["nodes"])
+
+def test_javascript_simple_function_parses_when_grammar_installed():
+    pytest.importorskip("tree_sitter_javascript")
+    code = "function add(a, b) { return a + b; }\n"
+    result = parse_and_collect(code, "javascript")
+    assert result["language"] == "javascript"
+    assert result["root_type"] == "program"
+    assert result["error_count"] == 0
+    assert len(result["nodes"]) > 0
     assert_spans_valid(code, result["nodes"])
 
 def test_python_complex_realistic_constructs():
@@ -198,6 +230,57 @@ def test_statement_normalization_java_maps_to_stmt_families():
     labels = {n.type for n in result["canonical_nodes"]}
 
     assert "STMT_CLASS_DEF" in labels
+    assert "STMT_FUNCTION_DEF" in labels
+    assert "STMT_ASSIGN" in labels
+    assert "STMT_IF" in labels
+    assert "STMT_RETURN" in labels
+
+def test_statement_normalization_c_maps_to_stmt_families_when_grammar_installed():
+    pytest.importorskip("tree_sitter_c")
+    code = "int add(int a, int b) { int total = a + b; if (total > 0) return total; return 0; }"
+    result = parse_and_collect(
+        code,
+        "c",
+        include_unnamed_nodes=False,
+        canonicalize=True,
+        normalize_statements=True,
+    )
+    labels = {n.type for n in result["canonical_nodes"]}
+
+    assert "STMT_FUNCTION_DEF" in labels
+    assert "STMT_ASSIGN" in labels
+    assert "STMT_IF" in labels
+    assert "STMT_RETURN" in labels
+
+def test_statement_normalization_cpp_maps_to_stmt_families_when_grammar_installed():
+    pytest.importorskip("tree_sitter_cpp")
+    code = "int add(int a, int b) { int total = a + b; if (total > 0) return total; return 0; }"
+    result = parse_and_collect(
+        code,
+        "cpp",
+        include_unnamed_nodes=False,
+        canonicalize=True,
+        normalize_statements=True,
+    )
+    labels = {n.type for n in result["canonical_nodes"]}
+
+    assert "STMT_FUNCTION_DEF" in labels
+    assert "STMT_ASSIGN" in labels
+    assert "STMT_IF" in labels
+    assert "STMT_RETURN" in labels
+
+def test_statement_normalization_javascript_maps_to_stmt_families_when_grammar_installed():
+    pytest.importorskip("tree_sitter_javascript")
+    code = "function add(a, b) { let total = a + b; if (total > 0) return total; return 0; }"
+    result = parse_and_collect(
+        code,
+        "javascript",
+        include_unnamed_nodes=False,
+        canonicalize=True,
+        normalize_statements=True,
+    )
+    labels = {n.type for n in result["canonical_nodes"]}
+
     assert "STMT_FUNCTION_DEF" in labels
     assert "STMT_ASSIGN" in labels
     assert "STMT_IF" in labels

@@ -1,15 +1,7 @@
-// about the main app component
-// this is the rort react component that acts like a page router
-//  for this program.
-// it uses a selected collection state variable to track whicj collection the user clicked on. .when nothing is selcted , 
-// it shows he collectios component ( the list of al collections in the professor currenlty have)
-// when the user clicks a collection, it shows the collection deatus compaonent( like the dataset in a collection)
-// on back call back lets users go back to the collections list view .
-// it is a navigation toggle between " see all ollections and see deatils of one coletion"
-
 import { useEffect, useState } from "react";
 import Collections from "./Collections";
 import CollectionDetails from "./CollectionDetails";
+import Landing from "./Landing";
 
 interface Collection {
   id: string;
@@ -24,23 +16,138 @@ type NavItem = {
   active?: boolean;
 };
 
+type AppState = {
+  selectedCollection: Collection | null;
+};
+
 export default function App() {
+  const [showLanding, setShowLanding] = useState(true);
   const [selectedCollection, setSelectedCollection] = useState<Collection | null>(null);
   const [searchQuery, setSearchQuery] = useState("");
   const [navItems, setNavItems] = useState<NavItem[]>([{ label: "Collections", active: true }]);
 
+  // ✅ Restore state on refresh
+  useEffect(() => {
+    const state = window.history.state as (AppState & { page?: string; view?: string }) | null;
+
+    if (!state) {
+      setShowLanding(true);
+      window.history.replaceState({ page: "landing" }, "", window.location.pathname);
+      return;
+    }
+
+    if (state.view) {
+      setShowLanding(false);
+
+      if (state.selectedCollection) {
+        setSelectedCollection(state.selectedCollection);
+        setNavItems([
+          { label: "Collections", onClick: () => showCollections(), active: false },
+          { label: state.selectedCollection.name, active: true },
+        ]);
+      } else {
+        setSelectedCollection(null);
+        setNavItems([{ label: "Collections", active: true }]);
+      }
+
+      return;
+    }
+
+    if (state.page === "landing") {
+      setShowLanding(true);
+      return;
+    }
+
+    if (state.selectedCollection) {
+      setShowLanding(false);
+      setSelectedCollection(state.selectedCollection);
+      setNavItems([
+        { label: "Collections", onClick: () => showCollections(), active: false },
+        { label: state.selectedCollection.name, active: true },
+      ]);
+      return;
+    }
+
+    setShowLanding(false);
+    setSelectedCollection(null);
+    setNavItems([{ label: "Collections", active: true }]);
+  }, []);
+
+  // ✅ Handle browser back/forward
+  useEffect(() => {
+    const handlePopState = (event: PopStateEvent) => {
+      const state = event.state as (AppState & { page?: string; view?: string }) | null;
+
+      if (state?.view) return;
+
+      if (state?.page === "landing") {
+        setShowLanding(true);
+      } else if (state?.selectedCollection) {
+        setShowLanding(false);
+        setSelectedCollection(state.selectedCollection);
+        setNavItems([
+          { label: "Collections", onClick: () => showCollections(), active: false },
+          { label: state.selectedCollection.name, active: true },
+        ]);
+      } else {
+        setShowLanding(false);
+        setSelectedCollection(null);
+        setNavItems([{ label: "Collections", active: true }]);
+      }
+    };
+
+    window.addEventListener("popstate", handlePopState);
+    return () => window.removeEventListener("popstate", handlePopState);
+  }, []);
+
   const showCollections = (e?: React.MouseEvent) => {
     e?.preventDefault();
     setSelectedCollection(null);
+    setNavItems([{ label: "Collections", active: true }]);
+
+    const currentState = window.history.state as { selectedCollection?: unknown } | null;
+
+    if (currentState?.selectedCollection === null) {
+      window.history.replaceState({ selectedCollection: null }, "", "/");
+    } else {
+      window.history.pushState({ selectedCollection: null }, "", "/");
+    }
   };
 
-  useEffect(() => {
-    if (!selectedCollection) {
-      setNavItems([{ label: "Collections", active: true }]);
-    }
-  }, [selectedCollection]);
+  const handleGetStarted = () => {
+    setShowLanding(false);
+    window.history.pushState({ page: "collections" }, "", "/app");
+  };
 
-  return (
+  const handleBackToLanding = () => {
+    setShowLanding(true);
+    setSelectedCollection(null);
+    setNavItems([{ label: "Collections", active: true }]);
+    window.history.pushState({ page: "landing" }, "", "/");
+  };
+
+  const handleSelectCollection = (collection: Collection) => {
+    setSelectedCollection(collection);
+    setNavItems([
+      { label: "Collections", onClick: showCollections, active: false },
+      { label: collection.name, active: true },
+    ]);
+
+    window.history.pushState(
+      { selectedCollection: collection },
+      "",
+      `/collection/${collection.id}`
+    );
+  };
+
+  // 🔥 FIXED: BACK BUTTON (NO MORE DOUBLE CLICK ISSUE)
+  const handleBackFromDetails = () => {
+    window.history.back(); // ✅ correct
+  };
+
+  return showLanding ? (
+    <Landing onGetStarted={handleGetStarted} />
+  ) : (
     <div className="app app-shell">
       <header className="site-nav navbar">
         <div className="site-nav-inner">
@@ -48,11 +155,25 @@ export default function App() {
             <button type="button" className="site-title brand-link" onClick={showCollections}>
               Plagiarism Detector
             </button>
+
+            <button
+              type="button"
+              className="back-to-landing-btn"
+              onClick={handleBackToLanding}
+              title="Back to Home"
+            >
+              Home
+            </button>
           </div>
 
           <nav className="nav-center" aria-label="Page navigation">
             {navItems.map((item, index) => (
               <span key={`${item.label}-${index}`} className="crumb-group">
+                {index > 0 && (
+                  <span style={{ color: "#a8c5e0", margin: "0 0.25rem" }}>
+                    ›
+                  </span>
+                )}
                 {item.onClick ? (
                   <button
                     type="button"
@@ -75,23 +196,23 @@ export default function App() {
               type="search"
               className="nav-search"
               placeholder={selectedCollection ? "Search datasets" : "Search collections"}
-              aria-label={selectedCollection ? "Search datasets" : "Search collections"}
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
             />
           </div>
         </div>
       </header>
+
       <main className="app-main">
         {selectedCollection ? (
           <CollectionDetails
             collection={selectedCollection}
-            onBack={() => setSelectedCollection(null)}
+            onBack={handleBackFromDetails}
             onNavChange={setNavItems}
             searchQuery={searchQuery}
           />
         ) : (
-          <Collections onSelectCollection={setSelectedCollection} searchQuery={searchQuery} />
+          <Collections onSelectCollection={handleSelectCollection} searchQuery={searchQuery} />
         )}
       </main>
     </div>

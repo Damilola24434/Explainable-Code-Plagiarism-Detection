@@ -45,3 +45,19 @@ class SimilarityResultOut(BaseModel):
 
     class Config:
         from_attributes = True
+
+
+class MatchEvidenceOut(BaseModel):
+    id: UUID
+    run_id: UUID
+    file_a_id: UUID
+    file_b_id: UUID
+    a_start: int
+    a_end: int
+    b_start: int
+    b_end: int
+    kind: str
+    weight: float
+
+    class Config:
+        from_attributes = True

@@ -34,11 +34,35 @@ export interface SimilarityResult {
   risk: "HIGH" | "MEDIUM" | "LOW";
 }
 
+export interface MatchEvidence {
+  id: string;
+  run_id: string;
+  file_a_id: string;
+  file_b_id: string;
+  a_start: number;
+  a_end: number;
+  b_start: number;
+  b_end: number;
+  kind: string;
+  weight: number;
+}
+
 async function requestJson<T>(url: string, init?: RequestInit): Promise<T> {
   // call api
   const response = await fetch(url, init);
   if (!response.ok) {
-    throw new Error(`Request failed: ${response.status} ${response.statusText}`);
+    let message = `Request failed: ${response.status} ${response.statusText}`;
+    try {
+      const data = await response.json();
+      if (typeof data.detail === "string") {
+        message = data.detail;
+      } else if (data.detail?.message) {
+        message = data.detail.message;
+      }
+    } catch {
+      // keep default message
+    }
+    throw new Error(message);
   }
 
   // parse json
@@ -65,7 +89,20 @@ export async function getRun(runId: string): Promise<Run> {
   return requestJson<Run>(`${API_BASE}/runs/${runId}`);
 }
 
+export async function getDatasetRunHistory(datasetId: string): Promise<Run[]> {
+  // fetch all completed runs for a dataset
+  return requestJson<Run[]>(`${API_BASE}/runs/dataset/${datasetId}/history`);
+}
+
 export async function getRunResults(runId: string): Promise<SimilarityResult[]> {
   // fetch run results
   return requestJson<SimilarityResult[]>(`${API_BASE}/runs/${runId}/results`);
+}
+
+export function getRunExportPdfUrl(runId: string): string {
+  return `${API_BASE}/runs/${runId}/export-pdf`;
+}
+
+export async function getPairEvidence(runId: string, pairId: string): Promise<MatchEvidence[]> {
+  return requestJson<MatchEvidence[]>(`${API_BASE}/runs/${runId}/results/${pairId}/evidence`);
 }

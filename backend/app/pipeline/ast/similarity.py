@@ -28,7 +28,28 @@ def _window_span(token_spans: Sequence[Dict[str, Any]], start_index: int, n: int
         "token_end_index": start_index + n - 1,
         "start_byte": start_byte,
         "end_byte": end_byte,
+        "span_length": end_byte - start_byte,
     }
+
+
+def _max_end_byte(token_spans: Sequence[Dict[str, Any]]) -> int:
+    if not token_spans:
+        return 0
+    return max(item["end_byte"] for item in token_spans)
+
+
+def _is_useful_evidence_window(
+    ngram: Tuple[str, ...],
+    window: Dict[str, Any],
+    *,
+    file_size: int,
+    max_span_ratio: float = 0.6,
+) -> bool:
+    if any(token.startswith("ROOT>") for token in ngram):
+        return False
+    if file_size <= 0:
+        return True
+    return window["span_length"] / file_size <= max_span_ratio
 
 
 def compare_feature_handoffs(
@@ -36,7 +57,7 @@ def compare_feature_handoffs(
     handoff_b: Dict[str, Any],
     n: int = 3,
     max_evidence_per_ngram: int = 3,
-    max_evidence_items: int = 15,
+    max_evidence_items: int = 999999,
 ) -> Dict[str, Any]:
     """
     Compare two AST feature handoff payloads using node n-gram Jaccard similarity.
@@ -50,6 +71,8 @@ def compare_feature_handoffs(
     tokens_b = handoff_b.get("feature_tokens", [])
     spans_a = handoff_a.get("token_spans", [])
     spans_b = handoff_b.get("token_spans", [])
+    file_size_a = _max_end_byte(spans_a)
+    file_size_b = _max_end_byte(spans_b)
 
     ngrams_a = _extract_ngrams(tokens_a, n)
     ngrams_b = _extract_ngrams(tokens_b, n)
@@ -72,16 +95,40 @@ def compare_feature_handoffs(
         a_positions = idx_a.get(ng, [])[:max_evidence_per_ngram]
         b_positions = idx_b.get(ng, [])[:max_evidence_per_ngram]
 
+        raw_locations_a = [_window_span(spans_a, pos, n) for pos in a_positions]
+        raw_locations_b = [_window_span(spans_b, pos, n) for pos in b_positions]
+        filtered_locations_a = [
+            loc for loc in raw_locations_a if _is_useful_evidence_window(ng, loc, file_size=file_size_a)
+        ]
+        filtered_locations_b = [
+            loc for loc in raw_locations_b if _is_useful_evidence_window(ng, loc, file_size=file_size_b)
+        ]
+
+        if not filtered_locations_a or not filtered_locations_b:
+            continue
+
+        locations_a = filtered_locations_a
+        locations_b = filtered_locations_b
+
         evidence.append(
             {
                 "ngram": list(ng),
                 "support_count": min(len(idx_a.get(ng, [])), len(idx_b.get(ng, []))),
-                "locations_a": [_window_span(spans_a, pos, n) for pos in a_positions],
-                "locations_b": [_window_span(spans_b, pos, n) for pos in b_positions],
+                "locations_a": locations_a,
+                "locations_b": locations_b,
             }
         )
 
-    evidence.sort(key=lambda item: item["support_count"], reverse=True)
+    evidence = [
+        item for item in evidence if item["locations_a"] and item["locations_b"]
+    ]
+    evidence.sort(
+        key=lambda item: (
+            item["support_count"],
+            -min(loc["span_length"] for loc in item["locations_a"] + item["locations_b"]),
+        ),
+        reverse=True,
+    )
     evidence = evidence[:max_evidence_items]
 
     return {

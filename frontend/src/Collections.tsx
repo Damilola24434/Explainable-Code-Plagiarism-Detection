@@ -13,7 +13,7 @@
 
 import { useEffect, useState } from "react";
 import type { Collection as ApiCollection } from "./api/collections";
-import { getCollections, createCollection, deleteCollection } from "./api/collections";
+import { getCollections, createCollection, deleteCollection, uploadDatasetZip } from "./api/collections";
 
 interface CollectionsProps {
   onSelectCollection?: (collection: ApiCollection) => void;
@@ -22,9 +22,11 @@ interface CollectionsProps {
 
 export default function Collections({ onSelectCollection, searchQuery }: CollectionsProps) {
   const [collections, setCollections] = useState<ApiCollection[]>([]);
-  const [input, setInput] = useState("");
   const [error, setError] = useState<string>("");
-  const [creating, setCreating] = useState(false);
+  const [showCreateModal, setShowCreateModal] = useState(false);
+  const [collectionName, setCollectionName] = useState("");
+  const [selectedFile, setSelectedFile] = useState<File | null>(null);
+  const [isCreating, setIsCreating] = useState(false);
 
   useEffect(() => {
     loadWithRetry();
@@ -33,6 +35,8 @@ export default function Collections({ onSelectCollection, searchQuery }: Collect
   const load = async () => {
     try {
       const data = await getCollections();
+      // Sort by created_at in reverse order (newest first)
+      data.sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime());
       setCollections(data);
       setError("");
     } catch (err) {
@@ -45,6 +49,8 @@ export default function Collections({ onSelectCollection, searchQuery }: Collect
     for (let attempt = 1; attempt <= 5; attempt += 1) {
       try {
         const data = await getCollections();
+        // Sort by created_at in reverse order (newest first)
+        data.sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime());
         setCollections(data);
         setError("");
         return;
@@ -59,21 +65,54 @@ export default function Collections({ onSelectCollection, searchQuery }: Collect
     }
   };
 
-  const handleCreate = async (e: React.FormEvent) => {
+  const handleCreateWithFile = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!input.trim()) return;
-    setCreating(true);
+    if (!collectionName.trim()) {
+      setError("Collection name is required.");
+      return;
+    }
+
+    setIsCreating(true);
     setError("");
+
     try {
-      await createCollection(input.trim());
+      // Create the collection
+      const newCollection = await createCollection(collectionName.trim());
+      
+      // If a file was selected, upload it automatically
+      if (selectedFile) {
+        try {
+          await uploadDatasetZip(newCollection.id, selectedFile);
+        } catch (uploadErr) {
+          console.error("auto-upload failed", uploadErr);
+          // Collection was created, but upload failed - still navigate to it
+          setError("Collection created, but file upload failed. You can retry uploading later.");
+        }
+      }
+
+      // Navigate to the new collection
+      onSelectCollection?.(newCollection);
+      
+      // Reset modal
+      setShowCreateModal(false);
+      setCollectionName("");
+      setSelectedFile(null);
+      
+      // Refresh the collections list
       await load();
-      setInput("");
     } catch (err) {
-      console.error("create collection", err);
+      console.error("create collection with file", err);
       setError(err instanceof Error ? err.message : "Failed to create collection.");
     } finally {
-      setCreating(false);
+      setIsCreating(false);
     }
+  };
+
+  const resetModal = () => {
+    setShowCreateModal(false);
+    setCollectionName("");
+    setSelectedFile(null);
+    setError("");
   };
 
   const handleDelete = async (e: React.MouseEvent, id: string) => {
@@ -101,22 +140,14 @@ export default function Collections({ onSelectCollection, searchQuery }: Collect
 
       <section className="flow-section search-create-strip">
         <div className="section-header-row compact-row">
-          <h3 className="section-title">Create Collection</h3>
-          <form onSubmit={handleCreate} className="form-inline create-row">
-            <input
-              className="form-input"
-              type="text"
-              value={input}
-              onChange={(e) => setInput(e.target.value)}
-              placeholder="Collection name"
-              name="collectionName"
-            />
-            <button type="submit" className="btn btn-primary" disabled={creating}>
-              {creating ? "Creating..." : "Create"}
-            </button>
-          </form>
+          <h3 className="section-title">Start New Collection</h3>
+          <button 
+            onClick={() => setShowCreateModal(true)}
+            className="btn btn-primary"
+          >
+            + New Collection
+          </button>
         </div>
-        {error && <p className="inline-error">{error}</p>}
       </section>
 
       <section className="flow-section flow-stretch">
@@ -126,6 +157,8 @@ export default function Collections({ onSelectCollection, searchQuery }: Collect
             <h3 className="section-title">All Collections</h3>
           </div>
         </div>
+
+        {error && <div className="alert alert-error">{error}</div>}
 
         {filteredCollections.length === 0 ? (
           <div className="empty-state">
@@ -147,7 +180,7 @@ export default function Collections({ onSelectCollection, searchQuery }: Collect
                 <span className="entity-date">{new Date(collection.created_at).toLocaleDateString()}</span>
                 <div className="entity-actions">
                   <button
-                    className="btn btn-ghost btn-sm"
+                    className="btn btn-danger"
                     onClick={(e) => handleDelete(e, collection.id)}
                     title="Delete collection"
                     aria-label={`Delete ${collection.name}`}
@@ -160,6 +193,85 @@ export default function Collections({ onSelectCollection, searchQuery }: Collect
           </div>
         )}
       </section>
+
+      {/* Create Collection Modal */}
+      {showCreateModal && (
+        <div className="modal-overlay" onClick={resetModal}>
+          <div className="modal-content" onClick={(e) => e.stopPropagation()}>
+            <div className="modal-header">
+              <h2>Create Collection</h2>
+              <button 
+                className="modal-close-btn"
+                onClick={resetModal}
+                aria-label="Close modal"
+              >
+                ✕
+              </button>
+            </div>
+
+            <form onSubmit={handleCreateWithFile} className="modal-form">
+              <div className="form-group">
+                <label htmlFor="collection-name" className="form-label">Collection Name</label>
+                <input
+                  id="collection-name"
+                  className="form-input"
+                  type="text"
+                  value={collectionName}
+                  onChange={(e) => setCollectionName(e.target.value)}
+                  placeholder="Enter collection name"
+                  autoFocus
+                  required
+                />
+              </div>
+
+              <div className="form-group">
+                <label htmlFor="zip-file" className="form-label">Upload ZIP File (Optional)</label>
+                <p className="form-helper">Upload a ZIP file to immediately start analysis</p>
+                <input
+                  id="zip-file"
+                  type="file"
+                  accept=".zip"
+                  onChange={(e) => setSelectedFile(e.target.files?.[0] || null)}
+                  className="form-file-input"
+                />
+                {selectedFile && (
+                  <div className="file-selected">
+                    <span className="file-icon">📎</span>
+                    <span className="file-name">{selectedFile.name}</span>
+                    <button
+                      type="button"
+                      className="btn-remove-file"
+                      onClick={() => setSelectedFile(null)}
+                      aria-label="Remove file"
+                    >
+                      ✕
+                    </button>
+                  </div>
+                )}
+              </div>
+
+              {error && <div className="alert alert-error">{error}</div>}
+
+              <div className="modal-actions">
+                <button
+                  type="button"
+                  className="btn btn-ghost"
+                  onClick={resetModal}
+                >
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  className="btn btn-primary"
+                  disabled={isCreating || !collectionName.trim()}
+                >
+                  {isCreating ? "Creating..." : "Create Collection"}
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
     </section>
   );
 }
