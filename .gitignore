@@ -16,3 +16,7 @@ frontend/dist/
 # OS
 .DS_Store
 Thumbs.db
+
+# Database files
+test.db
+*.db
