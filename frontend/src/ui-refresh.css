@@ -16,6 +16,7 @@
 /* This sets the page background and text. */
 body {
   font-family: "Segoe UI", Arial, sans-serif;
+  font-size: 16px;
   background: linear-gradient(135deg, #d8e2eb 0%, #c8dbe6 50%, #b8d2e0 100%);
   color: var(--text);
   background-attachment: fixed;
@@ -399,7 +400,7 @@ input[name="collectionName"] {
   border-radius: 0.35rem;
   padding: 0.68rem 0.95rem;
   font-family: inherit;
-  font-size: 0.88rem;
+  font-size: 0.96rem;
   font-weight: 700;
   cursor: pointer;
   transition: opacity 0.18s ease, transform 0.18s ease, background-color 0.18s ease;
@@ -420,6 +421,15 @@ input[name="collectionName"] {
   color: var(--primary);
 }
 
+.btn-danger {
+  background: #111111;
+  color: #ffffff;
+}
+
+.btn-danger:hover:not(:disabled) {
+  background: #000000;
+}
+
 .btn-ghost {
   padding: 0.45rem 0.2rem;
   color: var(--accent);
@@ -432,7 +442,14 @@ input[name="collectionName"] {
 }
 
 .file-picker-label {
+  background: #111111;
+  color: #ffffff;
+  border: 1px solid #000000;
   cursor: pointer;
+}
+
+.file-picker-label:hover:not(:disabled) {
+  background: #000000;
 }
 
 .inline-error {
@@ -537,7 +554,7 @@ input[name="collectionName"] {
 
 .form-label {
   display: block;
-  font-size: 0.95rem;
+  font-size: 1rem;
   font-weight: 600;
   color: var(--primary);
   margin-bottom: 0.5rem;
