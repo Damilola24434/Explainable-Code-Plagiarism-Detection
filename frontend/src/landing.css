@@ -73,6 +73,7 @@ modern, and easy to use. It handles all visual parts but does not control logic.
   font-family: "Times New Roman", Times, serif;
   color: var(--text);
   line-height: 1.6;
+  font-size: 18px;
   background-color: var(--bg);
   min-height: 100vh;
 }
@@ -205,7 +206,7 @@ modern, and easy to use. It handles all visual parts but does not control logic.
 
 .hero h1 {
   font-family: "Times New Roman", Times, serif;
-  font-size: 4rem;
+  font-size: 4.6rem;
   font-weight: 700;
   margin-bottom: 1rem;
   line-height: 1.2;
@@ -218,7 +219,7 @@ modern, and easy to use. It handles all visual parts but does not control logic.
 }
 
 .hero p {
-  font-size: 1.1rem;
+  font-size: 1.25rem;
   margin-bottom: 2rem;
   opacity: 0.95;
   font-weight: 400;
@@ -316,7 +317,7 @@ modern, and easy to use. It handles all visual parts but does not control logic.
 
 .section-header h2 {
   font-family: "Times New Roman", Times, serif;
-  font-size: 3rem;
+  font-size: 3.4rem;
   font-weight: 700;
   margin-bottom: 1rem;
   color: var(--nav);
@@ -324,7 +325,7 @@ modern, and easy to use. It handles all visual parts but does not control logic.
 }
 
 .section-header p {
-  font-size: 1rem;
+  font-size: 1.15rem;
   color: var(--muted);
   max-width: 600px;
   margin: 0 auto;
@@ -339,8 +340,8 @@ modern, and easy to use. It handles all visual parts but does not control logic.
 }
 
 .about-text {
-  font-size: 1rem;
-  line-height: 1.8;
+  font-size: 1.12rem;
+  line-height: 1.85;
   color: var(--text);
   margin-bottom: 2rem;
   font-family: "Times New Roman", Times, serif;
@@ -372,13 +373,13 @@ modern, and easy to use. It handles all visual parts but does not control logic.
 .feature-item h3 {
   color: var(--hero);
   margin-bottom: 0.5rem;
-  font-size: 1.2rem;
+  font-size: 1.3rem;
   font-family: "Times New Roman", Times, serif;
 }
 
 .feature-item p {
   color: var(--text);
-  font-size: 0.95rem;
+  font-size: 1.03rem;
   font-family: "Times New Roman", Times, serif;
 }
 
@@ -436,14 +437,15 @@ modern, and easy to use. It handles all visual parts but does not control logic.
 .step-card h3 {
   margin-top: 1.5rem;
   margin-bottom: 1rem;
-  font-size: 1.2rem;
+  font-size: 1.35rem;
   color: var(--nav);
   font-family: "Times New Roman", Times, serif;
 }
 
 .step-card p {
   color: var(--text);
-  line-height: 1.7;
+  line-height: 1.75;
+  font-size: 1.03rem;
   font-family: "Times New Roman", Times, serif;
 }
 
@@ -616,14 +618,14 @@ modern, and easy to use. It handles all visual parts but does not control logic.
 }
 
 .team-card h3 {
-  font-size: 1.2rem;
+  font-size: 1.35rem;
   color: var(--nav);
   margin-bottom: 0.5rem;
   font-family: "Times New Roman", Times, serif;
 }
 
 .team-card .role {
-  font-size: 0.9rem;
+  font-size: 1rem;
   color: var(--hero);
   font-weight: 600;
   margin-bottom: 1rem;
@@ -632,8 +634,8 @@ modern, and easy to use. It handles all visual parts but does not control logic.
 
 .team-card p {
   color: var(--text);
-  line-height: 1.7;
-  font-size: 0.95rem;
+  line-height: 1.8;
+  font-size: 1.05rem;
   font-family: "Times New Roman", Times, serif;
 }
 
@@ -671,7 +673,7 @@ modern, and easy to use. It handles all visual parts but does not control logic.
 
 .ack-item strong {
   color: var(--hero);
-  font-size: 1.05rem;
+  font-size: 1.15rem;
 }
 
 .ack-item em {
@@ -686,10 +688,10 @@ modern, and easy to use. It handles all visual parts but does not control logic.
 
 .ack-list li {
   font-family: "Times New Roman", Times, serif;
-  font-size: 0.9rem;       /* smaller text (adjust to 0.85 if needed) */
+  font-size: 1.05rem;
   color: #000;
   margin-bottom: 6px;
-  line-height: 1.5;
+  line-height: 1.7;
 }
 
 .ack-list li strong {
