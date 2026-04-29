@@ -79,15 +79,15 @@ modern, and easy to use. It handles all visual parts but does not control logic.
 
 /* ===== NAVBAR ===== */
 
-.site-title {
-  margin-left: -80px; /* adjust: 8px, 12px, 16px */
+.landing-container .site-title {
+  margin-left: 0;
 }
-.site-nav {
-  padding-left: 12px;
+.landing-container .site-nav {
+  padding-left: 0;
 }
 @import url('https://fonts.googleapis.com/css2?family=Allura&display=swap');
 
-.site-title {
+.landing-container .site-title {
   font-family: 'Allura', cursive;
   font-size: 1.3rem;
   font-style: italic;
@@ -95,19 +95,20 @@ modern, and easy to use. It handles all visual parts but does not control logic.
 }
 
 /* CENTER LINKS */
-.nav-center {
+.landing-container .nav-center {
   flex: 1;
   display: flex;
   justify-content: center;
 }
 
-.nav-links {
+.landing-container .nav-links {
   display: flex;
   gap: 2.2rem; /* clean spacing */
+  flex-wrap: wrap;
 }
 
 /* LINKS */
-.nav-link {
+.landing-container .nav-link {
   background: none;
   border: none;
   color: #e2e8f0;
@@ -118,12 +119,12 @@ modern, and easy to use. It handles all visual parts but does not control logic.
 }
 
 /* HOVER (UNIFIED GREEN) */
-.nav-link:hover {
+.landing-container .nav-link:hover {
   color: #22c55e;
 }
 
 /* ACTIVE */
-.nav-link.active {
+.landing-container .nav-link.active {
   border-bottom: none;
 }
 
@@ -267,6 +268,23 @@ modern, and easy to use. It handles all visual parts but does not control logic.
 }
 
 @media (max-width: 768px) {
+  .landing-container .site-title {
+    margin-left: 0;
+  }
+
+  .landing-container .site-nav-inner {
+    align-items: stretch;
+  }
+
+  .landing-container .nav-center {
+    justify-content: center;
+  }
+
+  .landing-container .nav-links {
+    gap: 0.75rem;
+    justify-content: center;
+  }
+
   .hero h1 {
     font-size: 2.5rem;
   }
@@ -736,6 +754,32 @@ modern, and easy to use. It handles all visual parts but does not control logic.
   .req-grid,
   .team-grid {
     grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 480px) {
+  .container {
+    padding: 0 1rem;
+  }
+
+  .about,
+  .how-to-use,
+  .requirements,
+  .file-structure,
+  .team,
+  .acknowledgement,
+  .landing-footer {
+    padding-left: 1rem;
+    padding-right: 1rem;
+  }
+
+  .hero {
+    padding: 1.25rem 1rem;
+  }
+
+  .hero h1 {
+    font-size: 2rem;
+    letter-spacing: 1px;
   }
 }
 

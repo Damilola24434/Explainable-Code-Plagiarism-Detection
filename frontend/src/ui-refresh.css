@@ -79,11 +79,11 @@ a {
 }
 
 .nav-left {
-  min-width: 120px;
+  min-width: 0;
 }
 
 .nav-right {
-  min-width: 220px;
+  min-width: 160px;
   justify-content: flex-end;
 }
 
@@ -93,6 +93,7 @@ a {
   font-size: 1.08rem;
   font-weight: 800;
   letter-spacing: 0.01em;
+  white-space: nowrap;
 }
 
 /* This keeps the logo button simple. */
@@ -176,8 +177,32 @@ button.crumb-link {
   -webkit-text-fill-color: #ffffff;
   caret-color: #ffffff;
   box-shadow: 0 0 0 1px rgba(142, 202, 230, 0.22);
-  min-width: 220px;
+  min-width: 180px;
   padding: 7px 12px;
+}
+
+@media (max-width: 1200px) {
+  .site-nav-inner {
+    padding: 0.65rem 1rem;
+    flex-wrap: wrap;
+    row-gap: 0.65rem;
+  }
+
+  .nav-center {
+    position: static;
+    left: auto;
+    transform: none;
+    order: 2;
+    width: 100%;
+    justify-content: flex-start;
+    flex-wrap: wrap;
+    gap: 0.75rem;
+  }
+
+  .nav-right {
+    order: 3;
+    min-width: 0;
+  }
 }
 
 .form-input,
@@ -691,6 +716,7 @@ input[name="collectionName"] {
   justify-content: flex-end;
   gap: 0.75rem;
   min-width: 160px;
+  flex-wrap: wrap;
 }
 
 .dataset-action-btn {
@@ -837,6 +863,7 @@ input[name="collectionName"] {
   align-items: center;
   gap: 0.75rem;
   justify-content: flex-start;
+  flex-wrap: wrap;
   margin-bottom: 0.85rem;
 }
 
@@ -844,6 +871,7 @@ input[name="collectionName"] {
 .results-toolbar .form-select {
   width: auto;
   min-width: 180px;
+  max-width: 100%;
 }
 
 .results-table {
@@ -881,6 +909,11 @@ input[name="collectionName"] {
   text-align: left;
   font: inherit;
   cursor: pointer;
+}
+
+.result-row > span {
+  min-width: 0;
+  overflow-wrap: anywhere;
 }
 
 /* This keeps result columns from overflowing. */
@@ -1122,6 +1155,7 @@ input[name="collectionName"] {
   overflow-wrap: anywhere;
   word-break: break-word;
   line-height: 1.65;
+  font-size: clamp(0.75rem, 1.6vw, 0.86rem);
 }
 
 /* Comparison page inherits body background */
@@ -1153,6 +1187,39 @@ input[name="collectionName"] {
 
 /* This adjusts the layout for smaller screens. */
 @media (max-width: 1024px) {
+  .site-nav-inner {
+    padding: 0.75rem 1rem;
+    flex-wrap: wrap;
+  }
+
+  .nav-center {
+    position: static;
+    left: auto;
+    transform: none;
+    order: 2;
+    width: 100%;
+    justify-content: flex-start;
+    flex-wrap: wrap;
+    gap: 0.75rem;
+  }
+
+  .nav-right {
+    min-width: 0;
+  }
+
+  .nav-search {
+    min-width: 160px;
+  }
+
+  .hero-block > *,
+  .page-header > *,
+  .flow-section > * {
+    border-left: 0;
+    border-right: 0;
+    padding-left: 0;
+    padding-right: 0;
+  }
+
   .stats-row {
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
@@ -1190,10 +1257,12 @@ input[name="collectionName"] {
   .nav-right {
     justify-content: flex-end;
     order: 3;
+    min-width: 0;
   }
 
   .nav-search {
-    min-width: 150px;
+    min-width: 0;
+    width: 100%;
   }
 
   .hero-block,
@@ -1261,6 +1330,15 @@ input[name="collectionName"] {
     min-width: 0;
   }
 
+  .entity-actions {
+    width: 100%;
+  }
+
+  .results-toolbar > .btn:last-child {
+    margin-left: 0 !important;
+    width: 100%;
+  }
+
   .code-grid {
     grid-template-columns: 1fr;
   }
@@ -1288,5 +1366,29 @@ input[name="collectionName"] {
 
   .modal-actions .btn {
     width: 100%;
+  }
+}
+
+@media (max-width: 480px) {
+  .hero-block,
+  .page-header,
+  .flow-section,
+  .code-grid {
+    padding-left: 0.75rem;
+    padding-right: 0.75rem;
+  }
+
+  .site-title {
+    font-size: 1rem;
+  }
+
+  .hero-block h2,
+  .page-header h2 {
+    font-size: clamp(1.5rem, 6vw, 1.9rem);
+  }
+
+  .result-row {
+    gap: 0.5rem;
+    padding: 0.7rem 0;
   }
 }
