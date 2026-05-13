@@ -1,97 +1,302 @@
 # Explainable Code Plagiarism Detection
 
-Senior design project for detecting likely plagiarism in student programming assignments with explainable evidence.
+Instructor-facing web platform for code plagiarism analysis with explainable output.
 
-## 🚀 Quick Start (For Teammates)
+---
 
-**Requirements:** Docker & Docker Compose
+# System Overview
 
-**3 Steps:**
+This system detects potential code plagiarism by analyzing uploaded source code files and generating explainable similarity reports.
 
-1. **Clone the repo:**
-   ```bash
-   git clone https://github.com/Damilola24434/Explainable-Code-Plagiarism-Detection.git
-   cd Explainable-Code-Plagiarism-Detection
-   ```
+The processing pipeline includes:
 
-2. **Start everything:**
-   ```bash
-   docker compose up --build -d
-   ```
+1. File ingestion
+2. Token extraction
+3. Abstract Syntax Tree (AST) analysis
+4. Similarity scoring
+5. Explainable report generation
 
-3. **Open the app:**
-   - Frontend: http://localhost:5173
-   - Backend API: http://localhost:8000
+The system supports asynchronous execution in two modes:
 
-**Stop the app:**
+* **Docker Mode:** Uses Redis and Celery for queue-based asynchronous task processing.
+* **Fallback Mode:** Uses background-thread asynchronous execution when Redis/Celery services are unavailable.
+
+---
+
+# Instructor Quick Start (Docker - Recommended)
+
+## Prerequisites
+
+* Docker Desktop installed and running
+* Git installed
+* A PostgreSQL connection string from the project team (`DATABASE_URL`)
+
+---
+
+## 1) Clone Repository
+
+```bash
+git clone https://github.com/Damilola24434/Explainable-Code-Plagiarism-Detection.git
+cd Explainable-Code-Plagiarism-Detection
+```
+
+---
+
+## 2) Create `.env` in project root
+
+```env
+DATABASE_URL=postgresql+psycopg2://USER:PASSWORD@HOST/DB?sslmode=require
+```
+
+---
+
+## 3) Start Application
+
+```bash
+docker compose up --build -d
+```
+
+---
+
+## 4) Open Application
+
+* App UI: http://localhost:5173
+* API health: http://127.0.0.1:8000/api/health
+* API docs: http://127.0.0.1:8000/docs
+
+---
+
+## 5) Evaluation Workflow
+
+1. Create a collection
+2. Upload a ZIP of source files
+3. Start an analysis run
+4. Wait for completion
+5. Inspect results
+6. Export report PDF (optional)
+
+---
+
+## 6) Stop Application
+
 ```bash
 docker compose down
 ```
 
 ---
 
-## Why Docker? (Why It's Easy)
+# Instructor Quick Start (Without Docker – Fallback Mode)
 
-✅ **No Manual Setup** — No need to install Python, Node.js, PostgreSQL, Redis separately  
-✅ **Consistent Environment** — Works the same on Windows, Mac, and Linux  
-✅ **One Command Start** — Everything (frontend, backend, database, worker) runs with `docker compose up --build -d`  
-✅ **Zero Config** — All services are pre-configured and connected automatically  
-✅ **Easy Cleanup** — One command `docker compose down` removes everything  
+If Docker cannot be started on your system, the application can be run manually.
 
-**For teammates:** Just install [Docker Desktop](https://www.docker.com/products/docker-desktop), clone the repo, and run the start command. That's it! No Python venv, no package installation headaches, no "it works on my machine" problems.
+This fallback mode still supports asynchronous execution using background-thread processing.
 
 ---
+
+## Prerequisites
+
+* Python 3.12+
+* Node.js 18+
+* PostgreSQL database (local or remote)
+* Git
+
 ---
 
-## Current Milestone: AST Parsing
+# Development Setup (Manual)
 
-Implemented Tree-sitter-based parsing for:
-- Python
-- Java
+For developers who want to run components individually for development and testing.
 
-Current AST parsing pipeline features:
-- Parse source code into Tree-sitter ASTs
-- Collect AST nodes with byte spans (`start_byte`, `end_byte`) for traceability/explainability
-- Detect syntax issues via Tree-sitter error indicators (`ERROR` / `MISSING` / root error fallback)
-- JSON-safe parser output by default (optional raw Tree return for internal use)
-- Optional filtering of unnamed nodes (punctuation/operators) for cleaner similarity features
+---
 
-Core files:
-- `backend/app/pipeline/ast/languages.py`
-- `backend/app/pipeline/ast/parser.py`
-- `backend/app/pipeline/ast/types.py`
+# Backend Setup
 
-## Running AST Parser Tests
-
-From the repo root:
+## 1) Install Python Dependencies
 
 ```bash
-/Users/tobygabriella/Desktop/Explainable-Code-Plagiarism-Detection/backend/.venv/bin/python -m pytest backend/tests/test_ast_parser.py -q
+cd backend
+pip install -r requirements.txt
 ```
-
-Or from `backend/` with your venv activated:
-
-```bash
-pytest tests/test_ast_parser.py -q
-```
-
-## Troubleshooting
-
-If something goes wrong:
-
-- **Check container status:** `docker ps`
-- **View backend logs:** `docker logs plagiarism-backend --tail 100`
-- **Restart everything:** `docker compose down && docker compose up --build -d`
 
 ---
 
-## Development
+## 2) Create `.env` in `backend/`
 
-## Team Run Guide (Detailed)
+```env
+DATABASE_URL=postgresql+psycopg2://USER:PASSWORD@HOST/DB
+```
 
-## Next Planned Milestones
+---
 
-- ZIP upload ingestion (extract/filter `.py` and `.java`, decode, parse per file)
-- Canonicalization (identifier/literal normalization)
-- Structural similarity scoring (AST-based)
-- Explainable evidence output (matched AST regions / locations)
+## 3) Create Database Tables
+
+```bash
+python create_tables.py
+```
+
+---
+
+## 4) Test Database Connection (Optional)
+
+```bash
+python test_db.py
+```
+
+---
+
+## 5) Start Backend Server
+
+```bash
+uvicorn app.main:app --reload --host 0.0.0.0 --port 8000
+```
+
+Access:
+
+* API Health: http://localhost:8000/api/health
+* API Docs: http://localhost:8000/docs
+
+---
+
+# Frontend Setup
+
+## 1) Install Node Dependencies
+
+```bash
+cd frontend
+npm install
+```
+
+---
+
+## 2) Start Frontend
+
+```bash
+npm run dev
+```
+
+Access:
+
+* Frontend: http://localhost:5173
+* API requests automatically proxy to backend
+
+---
+
+# Full Development Workflow
+
+1. Start PostgreSQL database
+2. Set up backend
+3. Set up frontend
+4. Open:
+
+```text
+http://localhost:5173
+```
+
+---
+
+# Testing
+
+Backend tests:
+
+```bash
+cd backend
+python -m pytest
+```
+
+Frontend tests:
+
+```bash
+cd frontend
+npm test
+```
+
+(if configured)
+
+---
+
+# What To Expect During Evaluation
+
+Processing pipeline stages:
+
+```text
+INGEST -> TOKENS -> AST -> REPORT
+```
+
+Results include:
+
+* Pairwise similarity scores
+* Risk labels
+* AST-based explainable spans
+* Exportable similarity reports
+
+---
+
+# Verify Queue-Based Async Is Active (Docker Mode)
+
+Queue-based asynchronous processing uses Redis + Celery.
+
+To verify:
+
+```bash
+docker logs plagiarism-celery-worker --tail 100
+```
+
+Look for:
+
+* `Task run_pipeline[...] received`
+* `Task run_pipeline[...] succeeded`
+
+---
+
+# Troubleshooting
+
+## App does not load
+
+Ensure Docker Desktop is running, then:
+
+```bash
+docker compose up --build -d
+```
+
+---
+
+## Collections fail with backend errors
+
+Check:
+
+* `.env` file
+* `DATABASE_URL` value
+* Database availability
+
+---
+
+## Check service status
+
+```bash
+docker ps
+```
+
+---
+
+## Read backend logs
+
+```bash
+docker logs plagiarism-backend --tail 100
+```
+
+---
+
+## Full restart
+
+```bash
+docker compose down
+docker compose up --build -d
+```
+
+---
+
+# Notes
+
+* The repository intentionally excludes `.env` files and credentials.
+* If credentials are missing, request the PostgreSQL connection string from the project team.
+* The fallback execution mode allows operation without Redis/Celery services.
+* This system is designed to support both containerized deployment and local development workflows.

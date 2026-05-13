@@ -41,14 +41,17 @@ def start_run_job(run_id: str) -> None:
         try:
             run_pipeline.delay(run_id)
             return
-        except Exception:
-            pass
+        except Exception as e:
+            print(f"Celery queue failed: {e}, falling back to threading")
 
-    threading.Thread(
-        target=run_pipeline.run,
-        args=(run_id,),
-        daemon=True,
-    ).start()
+    # Fallback: run in background thread using Celery's apply() (synchronous execution)
+    def run_pipeline_sync():
+        try:
+            run_pipeline.apply(args=(run_id,))
+        except Exception as e:
+            print(f"Pipeline failed: {e}")
+    
+    threading.Thread(target=run_pipeline_sync, daemon=True).start()
 
 
 def get_risk_label(score: float) -> str:

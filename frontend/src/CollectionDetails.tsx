@@ -208,13 +208,15 @@ export default function CollectionDetails({ collection, onBack, onNavChange, sea
 
   // Update breadcrumb nav whenever the active sub-view changes
   useEffect(() => {
+    if (!onNavChange) return;
+
     const returnToCollections = () => {
       closeRunViews();
       onBack();
     };
 
     if (showProgressPage && activeRun) {
-      onNavChange?.([
+      onNavChange([
         { label: "Collections", onClick: returnToCollections },
         { label: collection.name, onClick: closeRunViews },
         { label: activeDatasetName, onClick: closeRunViews },
@@ -224,7 +226,7 @@ export default function CollectionDetails({ collection, onBack, onNavChange, sea
     }
 
     if (showResultsPage && activeRun) {
-      onNavChange?.([
+      onNavChange([
         { label: "Collections", onClick: returnToCollections },
         { label: collection.name, onClick: closeRunViews },
         { label: activeDatasetName, onClick: closeRunViews },
@@ -233,11 +235,11 @@ export default function CollectionDetails({ collection, onBack, onNavChange, sea
       return;
     }
 
-    onNavChange?.([
+    onNavChange([
       { label: "Collections", onClick: onBack },
       { label: collection.name, active: true },
     ]);
-  }, [activeDatasetName, activeRun, collection.name, onBack, onNavChange, showProgressPage, showResultsPage]);
+  }, [activeDatasetName, activeRun, collection.name, onBack, showProgressPage, showResultsPage]);
 
   if (showProgressPage && activeRun) {
     return (
